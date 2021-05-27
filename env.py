@@ -17,6 +17,7 @@ class SnakeGame():
         self.apple_value = 3
 
         self.init_snake()
+        self.randomize_apple()
     
 
     def init_snake(self):
