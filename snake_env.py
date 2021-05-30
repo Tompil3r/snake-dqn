@@ -3,6 +3,12 @@ import numpy as np
 
 
 class SnakeEnv():
+    UP_DIR = (-1, 0)
+    DOWN_DIR = (1, 0)
+    RIGHT_DIR = (0, 1)
+    LEFT_DIR = (0, -1)
+
+
     def __init__(self):
         self.init_variables()
         self.init_snake()

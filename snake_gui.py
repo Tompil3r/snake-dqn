@@ -22,6 +22,12 @@ class GUI():
         self.snake_body_color = (0, 162, 232)
         self.apple_color = (237, 28, 35)
 
+        self.left_key = pygame.K_LEFT
+        self.right_key = pygame.K_RIGHT
+        self.up_key = pygame.K_UP
+        self.down_key = pygame.K_DOWN
+        self.start_key = pygame.K_SPACE
+
         self.game_delay = 130
 
         self.best_score = 0
@@ -54,7 +60,7 @@ class GUI():
                     quit(code=0)
                 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
+                    if event.key == self.start_key:
                         game_started = True
 
 
@@ -67,26 +73,33 @@ class GUI():
                     pygame.quit()
                     quit(code=0)
                 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        snake_env.update_dir((0, -1))
+                elif event.type == pygame.KEYDOWN:
+                    if self.handle_keys_input(event.key):
                         snake_env.step()
-                    elif event.key == pygame.K_UP:
-                        snake_env.update_dir((-1, 0))
-                        snake_env.step()
-                    elif event.key == pygame.K_RIGHT:
-                        snake_env.update_dir((0, 1))
-                        snake_env.step()
-                    elif event.key == pygame.K_DOWN:
-                        snake_env.update_dir((1, 0))
-                        snake_env.step()
-            
+
             self.draw_game(snake_env)
             game_status = snake_env.step()
             pygame.time.delay(self.game_delay)
 
             if game_status != 0:
                 game_running = False
+
+
+    def handle_keys_input(self, key):
+        if key == self.left_key:
+            snake_env.update_dir(SnakeEnv.LEFT_DIR)
+            return True
+        elif key == self.up_key:
+            snake_env.update_dir(SnakeEnv.UP_DIR)
+            return True
+        elif key == self.right_key:
+            snake_env.update_dir(SnakeEnv.RIGHT_DIR)
+            return True
+        elif key == self.down_key:
+            snake_env.update_dir(SnakeEnv.DOWN_DIR)
+            return True
+        
+        return False
 
 
     def draw_background(self, board_width, board_height):
