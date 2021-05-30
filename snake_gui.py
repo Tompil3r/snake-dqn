@@ -23,9 +23,6 @@ class GUI():
         self.apple_color = (237, 28, 35)
 
         self.game_delay = 130
-        self.snake_animation_rate = 30
-
-        self.animation = True
 
         self.best_score = 0
         self.curr_score = 0
@@ -73,38 +70,23 @@ class GUI():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         snake_env.update_dir((0, -1))
-                        if self.animation:
-                            self.snake_animation(snake_env)
-                        else:
-                            snake_env.step()
+                        snake_env.step()
                     elif event.key == pygame.K_UP:
                         snake_env.update_dir((-1, 0))
-                        if self.animation:
-                            self.snake_animation(snake_env)
-                        else:
-                            snake_env.step()
+                        snake_env.step()
                     elif event.key == pygame.K_RIGHT:
                         snake_env.update_dir((0, 1))
-                        if self.animation:
-                            self.snake_animation(snake_env)
-                        else:
-                            snake_env.step()
+                        snake_env.step()
                     elif event.key == pygame.K_DOWN:
                         snake_env.update_dir((1, 0))
-                        if self.animation:
-                            self.snake_animation(snake_env)
-                        else:
-                            snake_env.step()
+                        snake_env.step()
             
-            if self.animation:
-                self.snake_animation(snake_env)
-            else:
-                game_status = snake_env.step()
-                pygame.time.delay(self.game_delay)
-                self.draw_game(snake_env)
-            
-                if game_status != 0:
-                    game_running = False
+            self.draw_game(snake_env)
+            game_status = snake_env.step()
+            pygame.time.delay(self.game_delay)
+
+            if game_status != 0:
+                game_running = False
 
 
     def draw_background(self, board_width, board_height):
@@ -114,15 +96,8 @@ class GUI():
                 [column*self.square_len, row*self.square_len, self.square_len, self.square_len])
 
     
-    def snake_animation(self, snake_env):
-        delay_per_update = self.game_delay / self.snake_animation_rate
-        moving_rate = 1 / self.snake_animation_rate
-
-        for idx in range(self.snake_animation_rate):
-            snake_env.move_snake(moving_rate)
-            self.draw_game(snake_env)
-            pygame.time.delay(int(delay_per_update))
-
+    def snake_animation(self):
+        start_tick = pygame.time.get_ticks()
         
 
     def draw_snake(self, snake, offset=(0, 0)):
