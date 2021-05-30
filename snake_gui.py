@@ -5,37 +5,41 @@ import pygame
 
 
 class GUI():
-    def __init__(self):
-        self.init_properties()
+    WINDOW_WIDTH = 680
+    WINDOW_HEIGHT = 650
+
+    SQUARE_LEN = 40
+
+    BACKGROUND_COLOR = (74, 117, 44)
+    BOARD_COLORS = [(116, 217, 72), (142, 204, 58)]
+    SNAKE_HEAD_COLOR = (63, 72, 204)
+    SNAKE_BODY_COLOR = (0, 162, 232)
+    APPLE_COLOR = (237, 28, 35)
+
+    GAME_DELAY = 130
+
+
+    def __init__(self, **kwargs):
+        self.init_variables(**kwargs)
         pygame.init()
 
 
-    def init_properties(self):
-        self.window_width = 680
-        self.window_height = 650
+    def init_variables(self, **kwargs):
+        self.left_key = kwargs.get('left_key', pygame.K_LEFT)
+        self.right_key = kwargs.get('right_key', pygame.K_RIGHT)
+        self.up_key = kwargs.get('up_key', pygame.K_UP)
+        self.down_key = kwargs.get('down_key', pygame.K_DOWN)
+        self.start_key = kwargs.get('start_key', pygame.K_SPACE)
 
-        self.square_len = 40
+        self.do_animation = kwargs.get('do_animation', True)
+        self.animation_update_rate = kwargs.get('animation_update_rate', 30)
 
-        self.background_color = (74, 117, 44)
-        self.board_colors = [(116, 217, 72), (142, 204, 58)]
-        self.snake_head_color = (63, 72, 204)
-        self.snake_body_color = (0, 162, 232)
-        self.apple_color = (237, 28, 35)
-
-        self.left_key = pygame.K_LEFT
-        self.right_key = pygame.K_RIGHT
-        self.up_key = pygame.K_UP
-        self.down_key = pygame.K_DOWN
-        self.start_key = pygame.K_SPACE
-
-        self.game_delay = 130
-
-        self.best_score = 0
-        self.curr_score = 0
+        self.best_score = kwargs.get('best_score', 0)
+        self.curr_score = kwargs.get('curr_score', 0)
 
 
     def init_window(self):
-        self.window = pygame.display.set_mode((self.window_width, self.window_height))
+        self.window = pygame.display.set_mode((GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT))
         pygame.display.set_caption('Snake Game')
 
 
@@ -79,7 +83,7 @@ class GUI():
 
             self.draw_game(snake_env)
             game_status = snake_env.step()
-            pygame.time.delay(self.game_delay)
+            pygame.time.delay(GUI.GAME_DELAY)
 
             if game_status != 0:
                 game_running = False
@@ -105,26 +109,29 @@ class GUI():
     def draw_background(self, board_width, board_height):
         for row in range(board_height):
             for column in range(board_width):
-                pygame.draw.rect(self.window, self.board_colors[(row+column)%2],
-                [column*self.square_len, row*self.square_len, self.square_len, self.square_len])
+                pygame.draw.rect(self.window, GUI.BOARD_COLORS[(row+column)%2],
+                [column*GUI.SQUARE_LEN, row*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
     
     def snake_animation(self):
-        start_tick = pygame.time.get_ticks()
+        delay_per_update = GUI.GAME_DELAY // self.animation_update_rate
+        movement_deltas = snake_env.get_snake_movment_delta(movement_rate=1/self.animation_update_rate)
+
+
         
 
     def draw_snake(self, snake, offset=(0, 0)):
         if snake is None:
             return
 
-        color = self.snake_head_color
+        color = GUI.SNAKE_HEAD_COLOR
         offset_x, offset_y = offset
 
         for snake_point in snake:
             row, column = snake_point
-            pygame.draw.rect(self.window, color, [column*self.square_len + offset_x, row*self.square_len + offset_y, self.square_len, self.square_len])
+            pygame.draw.rect(self.window, color, [column*GUI.SQUARE_LEN + offset_x, row*GUI.SQUARE_LEN + offset_y, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
-            color = self.snake_body_color
+            color = GUI.SNAKE_BODY_COLOR
     
 
     def draw_apple(self, apple):
@@ -132,11 +139,11 @@ class GUI():
             return
 
         row, column = apple
-        pygame.draw.rect(self.window, self.apple_color, [column*self.square_len, row*self.square_len, self.square_len, self.square_len])
+        pygame.draw.rect(self.window, GUI.APPLE_COLOR, [column*GUI.SQUARE_LEN, row*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
     
 
     def draw_game(self, snake_env):
-        self.draw_background(snake_env.board_width, snake_env.board_height)
+        self.draw_background(SnakeEnv.BOARD_WIDTH, SnakeEnv.BOARD_HEIGHT)
         self.draw_snake(snake_env.snake)
         self.draw_apple(snake_env.apple)
         pygame.display.update()
