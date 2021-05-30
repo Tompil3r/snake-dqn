@@ -55,11 +55,11 @@ class SnakeEnv():
         return (0 <= row and row < self.board_height) and (0 <= column and column < self.board_width)
 
 
-    def add_dir(self, point, dir):
+    def add_dir(self, point, dir, dir_rate=1):
         row, column = point
         delta_row, delta_column = dir
-        return (row + delta_row, column + delta_column)
-    
+        return (row + delta_row*dir_rate, column + delta_column*dir_rate)
+
 
     def get_random_direction_value(self):
         return (-1, 1)[random.randint(0, 1)]
@@ -139,15 +139,26 @@ class SnakeEnv():
             self.apple = (random.randint(0, self.board_height - 1), random.randint(0, self.board_width - 1))
 
 
-    def move_snake(self):
+    def get_points_delta(self, point_a, point_b):
+        if len(point_a) != len(point_b):
+            return None
+        
+        return tuple([(int(value_a) - int(value_b)) for value_a, value_b in zip(point_a, point_b)])
+        
+
+    def move_snake(self, moving_rate=1):
         head, *body = self.snake
         last_point = head
 
-        snake = [self.add_dir(head, self.dir)]
+        snake = [self.add_dir(head, self.dir, dir_rate=moving_rate)]
 
         for idx in range(len(body)):
-            snake.append(last_point)
-            last_point = body[idx]
+            if moving_rate != 1:
+                dir = self.get_points_delta(last_point, body[idx])
+                snake.append(self.add_dir(body[idx], dir, dir_rate=moving_rate))
+            else:
+                snake.append(last_point)
+                last_point = body[idx]
         
         self.snake = snake
         self.last_tail = last_point
