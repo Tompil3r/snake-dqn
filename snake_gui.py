@@ -31,7 +31,7 @@ class GUI():
         self.down_key = kwargs.get('down_key', pygame.K_DOWN)
         self.start_key = kwargs.get('start_key', pygame.K_SPACE)
 
-        self.do_animation = kwargs.get('do_animation', True)
+        self.do_animation = kwargs.get('do_animation', False)
         self.animation_update_rate = kwargs.get('animation_update_rate', 30)
 
         self.best_score = kwargs.get('best_score', 0)
@@ -79,29 +79,33 @@ class GUI():
                 
                 elif event.type == pygame.KEYDOWN:
                     if self.handle_keys_input(event.key):
+                        if self.do_animation:
+                            self.snake_animation(snake_env)
+
                         snake_env.step()
 
-            self.draw_game(snake_env)
-            game_status = snake_env.step()
-            pygame.time.delay(GUI.GAME_DELAY)
+            if self.do_animation:
+                self.snake_animation(snake_env)
 
+            else:
+                pygame.time.delay(GUI.GAME_DELAY)
+
+            game_status = snake_env.step()
+            self.draw_game(snake_env)
+            
             if game_status != 0:
                 game_running = False
 
 
     def handle_keys_input(self, key):
         if key == self.left_key:
-            snake_env.update_dir(SnakeEnv.LEFT_DIR)
-            return True
+            return snake_env.update_dir(SnakeEnv.LEFT_DIR)
         elif key == self.up_key:
-            snake_env.update_dir(SnakeEnv.UP_DIR)
-            return True
+            return snake_env.update_dir(SnakeEnv.UP_DIR)
         elif key == self.right_key:
-            snake_env.update_dir(SnakeEnv.RIGHT_DIR)
-            return True
+            return snake_env.update_dir(SnakeEnv.RIGHT_DIR)
         elif key == self.down_key:
-            snake_env.update_dir(SnakeEnv.DOWN_DIR)
-            return True
+            return snake_env.update_dir(SnakeEnv.DOWN_DIR)
         
         return False
 
@@ -113,23 +117,29 @@ class GUI():
                 [column*GUI.SQUARE_LEN, row*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
     
-    def snake_animation(self):
+    def snake_animation(self, snake_env):
         delay_per_update = GUI.GAME_DELAY // self.animation_update_rate
-        movement_deltas = snake_env.get_snake_movment_delta(movement_rate=1/self.animation_update_rate)
+        movement_delta = 1 / self.animation_update_rate
 
+        env_copy = snake_env.copy()
+        snake_dirs = env_copy.get_snake_dirs(ratio=movement_delta)
+
+        for idx in range(self.animation_update_rate):
+            env_copy.move_snake_with_dirs(snake_dirs)
+            self.draw_game(env_copy)
+            pygame.time.delay(delay_per_update)
 
         
 
-    def draw_snake(self, snake, offset=(0, 0)):
+    def draw_snake(self, snake):
         if snake is None:
             return
 
         color = GUI.SNAKE_HEAD_COLOR
-        offset_x, offset_y = offset
 
         for snake_point in snake:
             row, column = snake_point
-            pygame.draw.rect(self.window, color, [column*GUI.SQUARE_LEN + offset_x, row*GUI.SQUARE_LEN + offset_y, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
+            pygame.draw.rect(self.window, color, [int(column*GUI.SQUARE_LEN), int(row*GUI.SQUARE_LEN), GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
             color = GUI.SNAKE_BODY_COLOR
     
@@ -151,5 +161,5 @@ class GUI():
 
 snake_env = SnakeEnv()
 
-gui = GUI()
+gui = GUI(do_animation=False, animation_update_rate=30)
 gui.load_game(snake_env)

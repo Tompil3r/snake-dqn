@@ -24,17 +24,29 @@ class SnakeEnv():
     APPLE_VALUE = 3
 
 
-    def __init__(self):
-        self.init_variables()
-        self.init_snake()
-        self.randomize_apple()
-    
+    def __init__(self, init=True):
+        if init:
+            self.init_variables()
+            self.init_snake()
+            self.randomize_apple()
+        
 
     def init_variables(self):
         self.snake = []
         self.apple = None
         self.last_tail = None
         self.dir = (0, 1)
+
+
+    def copy(self):
+        snake_env = SnakeEnv(init=False)
+
+        snake_env.snake = [self.copy_point(snake_point) for snake_point in self.snake]
+        snake_env.apple = self.copy_point(self.apple)
+        snake_env.last_tail = self.copy_point(self.last_tail)
+        snake_env.dir = self.copy_point(self.dir)
+
+        return snake_env
 
 
     def init_snake(self):
@@ -77,13 +89,8 @@ class SnakeEnv():
         return (row - delta_row, column - delta_column)
     
 
-    def mul_point(self, point, multiplier):
+    def mul_point_by_num(self, point, multiplier):
         row, column = point
-
-        if type(multiplier) is tuple:
-            row_mul, column_mul = multiplier
-            return (row*row_mul, column*column_mul)
-        
         return (row*multiplier, column*multiplier)
 
 
@@ -137,7 +144,9 @@ class SnakeEnv():
 
 
     def copy_point(self, point):
-        return tuple([value for value in point])
+        if point is None:
+            return None
+        return tuple(list(point))
 
     
     def get_game_matrix(self):
@@ -166,10 +175,19 @@ class SnakeEnv():
 
 
     def move_snake(self):
-        self.snake, self.last_tail = self.get_future_snake()
+        self.snake, self.last_tail = self.get_next_snake()
     
+
+    def move_snake_with_dirs(self, dirs):
+        if len(dirs) != len(self.snake):
+            return
+        
+        for idx in range(len(self.snake)):
+            self.snake[idx] = self.add_point(self.snake[idx], dirs[idx])
+
+
     
-    def get_future_snake(self):
+    def get_next_snake(self):
         last_point = self.snake[SnakeEnv.HEAD_INDEX]
 
         snake = [self.add_point(self.snake[SnakeEnv.HEAD_INDEX], self.dir)]
@@ -184,14 +202,14 @@ class SnakeEnv():
         return (snake, last_point)
     
 
-    def get_snake_movment_delta(self, movement_rate=1):
-        movement_delta = []        
-        future_snake, last_tail = self.get_future_snake()
+    def get_snake_dirs(self, ratio=1):
+        next_snake, last_tail = self.get_next_snake()
+        dirs = []
 
-        for snake_part, future_snake_part in zip(self.snake, future_snake):
-            movement_delta.append(self.mul_point(self.sub_point(future_snake_part, snake_part), movement_rate))
+        for next_point, curr_point in zip(next_snake, self.snake):
+            dirs.append(self.mul_point_by_num(self.sub_point(next_point, curr_point), ratio))
         
-        return movement_delta
+        return dirs
 
 
     def is_eating_apple(self):
@@ -223,9 +241,11 @@ class SnakeEnv():
 
 
     def update_dir(self, dir):
-        if self.dir != self.get_opposite_dir(dir):
-            self.dir = dir
+        if self.dir == dir or self.dir == self.get_opposite_dir(dir):
+            return False
 
+        self.dir = dir
+        return True
 
     def reset(self):
         self.__init__()
