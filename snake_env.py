@@ -23,6 +23,11 @@ class SnakeEnv():
     HEAD_VALUE = 2
     APPLE_VALUE = 3
 
+    GAME_OVER_CODE = 0
+    NOTHING_CHANGED_CODE = 1
+    APPLE_EATEN_CODE = 2
+    WON_GAME_CODE = 3
+
 
     def __init__(self, init=True):
         if init:
@@ -231,13 +236,17 @@ class SnakeEnv():
         if self.is_eating_apple():
             self.apple = None
             self.spawn_tail()
+
+            if self.is_board_full():
+                return SnakeEnv.WON_GAME_CODE
+
             self.randomize_apple()
+            return SnakeEnv.APPLE_EATEN_CODE
         
         if self.is_game_over():
-            return -1
-        elif self.is_board_full():
-            return 1
-        return 0
+            return SnakeEnv.GAME_OVER_CODE
+        
+        return SnakeEnv.NOTHING_CHANGED_CODE
 
 
     def update_dir(self, dir):

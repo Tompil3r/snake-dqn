@@ -2,11 +2,16 @@ from snake_env import SnakeEnv
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+import time
 
 
 class GUI():
     WINDOW_WIDTH = 680
     WINDOW_HEIGHT = 650
+
+    BOARD_HEIGHT = 600
+    TEXT_HEIGHT = 50
+    TEXT_X_GAP = 30
 
     SQUARE_LEN = 40
 
@@ -16,12 +21,11 @@ class GUI():
     SNAKE_BODY_COLOR = (0, 162, 232)
     APPLE_COLOR = (237, 28, 35)
 
-    GAME_DELAY = 130
-
 
     def __init__(self, **kwargs):
-        self.init_variables(**kwargs)
         pygame.init()
+        pygame.font.init()
+        self.init_variables(**kwargs)
 
 
     def init_variables(self, **kwargs):
@@ -33,9 +37,15 @@ class GUI():
 
         self.do_animation = kwargs.get('do_animation', False)
         self.animation_update_rate = kwargs.get('animation_update_rate', 30)
+        self.game_delay = 120
+
+        if self.do_animation:
+            self.game_delay -= 30
 
         self.best_score = kwargs.get('best_score', 0)
         self.curr_score = kwargs.get('curr_score', 0)
+
+        self.font = pygame.font.SysFont('Ariel', 30)
 
 
     def init_window(self):
@@ -55,6 +65,8 @@ class GUI():
     def wait_to_start(self, snake_env):
         game_started = False
 
+        self.update_scores()
+        
         while not game_started:
             self.draw_game(snake_env)
 
@@ -82,19 +94,40 @@ class GUI():
                         if self.do_animation:
                             self.snake_animation(snake_env)
 
-                        snake_env.step()
+                        game_status = snake_env.step()
+                        game_running = self.update_game(game_status)
 
             if self.do_animation:
                 self.snake_animation(snake_env)
 
             else:
-                pygame.time.delay(GUI.GAME_DELAY)
+                pygame.time.delay(self.game_delay)
 
             game_status = snake_env.step()
+            game_running = self.update_game(game_status)
             self.draw_game(snake_env)
+
+
+    def update_game(self, game_status):
+        if game_status == SnakeEnv.GAME_OVER_CODE:
+            if self.curr_score > self.best_score:
+                self.best_score = self.curr_score
+            self.curr_score = 0
+            return False
+        elif game_status == SnakeEnv.WON_GAME_CODE:
+            self.curr_score += 1                
+            if self.curr_score > self.best_score:
+                self.best_score = self.curr_score
             
-            if game_status != 0:
-                game_running = False
+            self.update_scores()
+            return False
+        elif game_status == SnakeEnv.APPLE_EATEN_CODE:
+            self.curr_score += 1
+            self.update_scores()
+            return True
+        elif game_status == SnakeEnv.NOTHING_CHANGED_CODE:
+            return True
+
 
 
     def handle_keys_input(self, key):
@@ -116,9 +149,25 @@ class GUI():
                 pygame.draw.rect(self.window, GUI.BOARD_COLORS[(row+column)%2],
                 [column*GUI.SQUARE_LEN, row*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
+
+    def update_scores(self):
+        white_color = (255, 255, 255)
+
+        best_score_text = self.font.render(f'Best Score: {self.best_score}', False, white_color)
+        curr_score_text = self.font.render(f'Current Score: {self.curr_score}', False, white_color)
+
+        text_size = curr_score_text.get_rect()
+        text_y_gap = int(GUI.TEXT_HEIGHT / 2 - text_size.height / 2)
+
+        pygame.draw.rect(self.window, GUI.BACKGROUND_COLOR, [0, GUI.BOARD_HEIGHT, GUI.WINDOW_WIDTH, GUI.TEXT_HEIGHT])
+        self.window.blit(best_score_text, (GUI.TEXT_X_GAP, GUI.BOARD_HEIGHT + text_y_gap))
+        self.window.blit(curr_score_text, (GUI.WINDOW_WIDTH - GUI.TEXT_X_GAP - text_size.width, GUI.BOARD_HEIGHT + text_y_gap))
+
+        pygame.display.update()
+
     
     def snake_animation(self, snake_env):
-        delay_per_update = GUI.GAME_DELAY // self.animation_update_rate
+        delay_per_update = self.game_delay // self.animation_update_rate
         movement_delta = 1 / self.animation_update_rate
 
         env_copy = snake_env.copy()
@@ -150,7 +199,7 @@ class GUI():
 
         row, column = apple
         pygame.draw.rect(self.window, GUI.APPLE_COLOR, [column*GUI.SQUARE_LEN, row*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
-    
+
 
     def draw_game(self, snake_env):
         self.draw_background(SnakeEnv.BOARD_WIDTH, SnakeEnv.BOARD_HEIGHT)
@@ -161,5 +210,5 @@ class GUI():
 
 snake_env = SnakeEnv()
 
-gui = GUI(do_animation=False, animation_update_rate=30)
+gui = GUI(do_animation=True, animation_update_rate=30)
 gui.load_game(snake_env)
