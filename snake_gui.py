@@ -185,7 +185,7 @@ class GUI():
             return
 
         color = GUI.SNAKE_HEAD_COLOR
-        skip_smooth_drawing = (SnakeEnv.HEAD_INDEX, SnakeEnv.HEAD_INDEX + 1, len(snake)-1)
+        skip_smooth_drawing = (SnakeEnv.HEAD_INDEX, SnakeEnv.HEAD_INDEX + 1, len(snake) - 1)
         
 
         for idx,snake_point in enumerate(snake):
@@ -194,6 +194,8 @@ class GUI():
             pygame.draw.rect(self.window, color, [int(x_draw), int(y_draw), GUI.SQUARE_LEN, GUI.SQUARE_LEN])
             
             if idx not in skip_smooth_drawing:
+                x_draw += GUI.SQUARE_LEN // 2
+                y_draw += GUI.SQUARE_LEN // 2
                 pygame.draw.rect(self.window, color, [(x_draw//GUI.SQUARE_LEN)*GUI.SQUARE_LEN, (y_draw//GUI.SQUARE_LEN)*GUI.SQUARE_LEN, GUI.SQUARE_LEN, GUI.SQUARE_LEN])
 
             color = GUI.SNAKE_BODY_COLOR
