@@ -148,11 +148,46 @@ class DQNAgent():
                 print(f'{step+1}/{nb_steps} Completed - {((step+1)*100)/nb_steps:.2f}%')
         
 
-        return {'episodes':episode+1, 'episode_steps':episode_steps, 'episode_rewards':episode_rewards}
+        return {'episode_steps':episode_steps, 'episode_rewards':episode_rewards}
     
 
-    def test(self, env, nb_episodes, visualize=False):
-        pass
+    def test(self, env, nb_episodes, visualize=False, nb_max_episode_steps=-1):
+        episode_steps = []
+        episode_rewards = []
+
+        for episode in nb_episodes:
+            state = env.reset()
+            done = False
+            episode_reward = 0
+            step = 0
+            
+            while not done:
+                if visualize:
+                    env.render()
+
+                # get action from agent
+                action = self.act(state, training=False)
+
+                # execute agent's action
+                next_state, reward, done, info = env.step(action)
+                episode_reward += reward
+
+                # store experience
+                self.memory.store_experience(state, action, reward, next_state)
+
+                # update current state
+                state = next_state
+
+                step += 1
+
+                if done or step == nb_max_episode_steps:
+                    break
+
+
+            episode_steps.append(step)
+            episode_rewards.append(episode_reward)
+
+        return {'episode_steps':episode_steps, 'episode_rewards':episode_rewards}
 
 
             
