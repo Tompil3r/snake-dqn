@@ -1,5 +1,4 @@
 import numpy as np
-from rl_lib.epsilon_decay import EpsilonDecay
 
 
 class Policy():

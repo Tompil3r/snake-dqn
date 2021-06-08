@@ -42,3 +42,4 @@ class EpisodicDecay(EpsilonDecay):
 
         # epsilon is calculated by the number of episode
         return (min_eps + (max_eps - min_eps) * np.exp(-decay_rate*episode))
+
