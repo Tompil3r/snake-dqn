@@ -7,10 +7,13 @@ from tensorflow.keras.layers import Dense, Flatten
 def build_model(input_shape, actions):
     return Sequential(layers=[
         Flatten(input_shape=input_shape),
-        Dense(64, activation='relu'),
-        Dense(64, activation='relu'),
-        Dense(64, activation='relu'),
-        Dense(64, activation='relu'),
-        Dense(actions, activation='softmax')
+        Dense(32, activation='relu'),
+        Dense(32, activation='relu'),
+        # Dense(64, activation='relu'),
+        # Dense(64, activation='relu'),
+        Dense(actions, activation='linear')
     ])
+
+
+
 

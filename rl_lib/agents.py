@@ -26,7 +26,8 @@ class DQNAgent():
 
     def act(self, state, training=False):
         # get predicted q-values by the model
-        q_values = self.model.predict(state)
+        state = np.reshape(state, (1, len(state)))
+        q_values = self.model.predict(state)[0]
 
         if training or self.test_policy is None:
             # if model is training or agent has no test policy - return the output of normal policy
@@ -56,7 +57,7 @@ class DQNAgent():
             next_state, reward, done, info = env.step(action)
                 
             # store experience
-            self.memory.store_experience(state, action, reward, next_state)
+            self.memory.store_experience(state, action, reward, next_state, done)
                 
             # update current state
             state = next_state
@@ -67,9 +68,9 @@ class DQNAgent():
         states, actions, rewards, next_states, terminals = self.memory.sample(batch_size)
         
         # get current q values
-        curr_q_values = self.model.predict(states)
+        curr_q_values = self.model.predict(np.array(states))
         # get next q values
-        next_q_values = self.model.predict(next_states)
+        next_q_values = self.model.predict(np.array(next_states))
         # curr_q_values are assign to target_q_values to avoid loss on actions the agent did not choose
         target_q_values = curr_q_values
 
@@ -128,7 +129,7 @@ class DQNAgent():
             episode_reward += reward
 
             # store experience
-            self.memory.store_experience(state, action, reward, next_state)
+            self.memory.store_experience(state, action, reward, next_state, done)
 
             # update current state
             state = next_state
@@ -145,17 +146,18 @@ class DQNAgent():
             
             # verbose if specified
             if verbose == 1:
-                print(f'{step+1}/{nb_steps} Completed - {((step+1)*100)/nb_steps:.2f}%')
+                print(f'{step+1}/{nb_steps} Completed - {((step+1)*100)/nb_steps:.2f}%', end='\r')
         
-
+        
+        env.close()
         return {'episode_steps':episode_steps, 'episode_rewards':episode_rewards}
     
 
-    def test(self, env, nb_episodes, visualize=False, nb_max_episode_steps=-1):
+    def test(self, env, nb_episodes, verbose=1, visualize=False, nb_max_episode_steps=-1):
         episode_steps = []
         episode_rewards = []
 
-        for episode in nb_episodes:
+        for episode in range(nb_episodes):
             state = env.reset()
             done = False
             episode_reward = 0
@@ -173,7 +175,7 @@ class DQNAgent():
                 episode_reward += reward
 
                 # store experience
-                self.memory.store_experience(state, action, reward, next_state)
+                self.memory.store_experience(state, action, reward, next_state, done)
 
                 # update current state
                 state = next_state
@@ -187,7 +189,11 @@ class DQNAgent():
             episode_steps.append(step)
             episode_rewards.append(episode_reward)
 
+        env.close()
         return {'episode_steps':episode_steps, 'episode_rewards':episode_rewards}
+    
 
+    def save_weights(self, filename):
+        self.model.save_weights(filename)
 
             

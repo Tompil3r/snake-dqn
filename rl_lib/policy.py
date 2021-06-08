@@ -58,7 +58,7 @@ class EpsilonGreedyQPolicy(Policy):
     def on_episode_end(self, episode):
         if self.decay is not None:
             # decay epsilon using the decay_func attribute if available, else skip
-            self.decay(eps=self.eps, decay_rate=self.decay_rate, min_eps=self.min_eps, max_eps=self.max_eps, episode=episode)
+            self.eps = self.decay(eps=self.eps, decay_rate=self.decay_rate, min_eps=self.min_eps, max_eps=self.max_eps, episode=episode)
 
         
     class BoltzmannQPolicy(Policy):
