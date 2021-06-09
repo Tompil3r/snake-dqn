@@ -61,6 +61,9 @@ class SnakeEnv():
         # between the head of the snake to the apple
         self.reward_map = {self.normal_move_code:None, self.eating_apple_code:3, self.winning_game_code:1000, self.losing_game_code:-1000}
    
+        # gui
+
+
 
     def get_reward(self, game_code):
         if game_code == self.normal_move_code:
@@ -138,10 +141,6 @@ class SnakeEnv():
         return state
 
 
-    def init_dir(self):
-        self.dir = self.get_dir(self.right_dir)
-
-
     def init_snake(self):
         self.snake = deque()
 
@@ -167,7 +166,21 @@ class SnakeEnv():
 
             self.snake.append(point)
             last_point = point
-        
+
+
+    def reset(self):
+        self.snake = None
+        self.apple = None
+        self.dir = None
+        self.last_tail = None
+
+        self.dir = self.get_dir(self.right_dir)
+        self.init_snake()
+        self.randomize_apple()
+        self.state = self.get_state()
+
+        return np.copy(self.state)
+
 
     def is_board_full(self):
         assert self.state is not None, 'self.is_board_full (SnakeEnv): state must no be None'
@@ -222,7 +235,7 @@ class SnakeEnv():
         reward = 0
         done = False
         info = {}
-        
+
         event_idx = 0
 
         self.update_dir(action)
@@ -254,12 +267,18 @@ class SnakeEnv():
                 info[f'Event{event_idx}':'Game Lost']
                 event_idx += 1
                 reward += self.get_reward(self.losing_game_code)
+
+                if self.curr_score > self.best_score:
+                    self.best_score = self.curr_score
             
             else:
                 reward += self.get_reward(self.normal_move_code)
         
         return np.copy(self.state), reward, done, info
 
+
+    def render(self):
+        pass
 
 
 
