@@ -22,10 +22,16 @@ class SnakeGUI():
         self.apple_color = (237, 28, 35)
         self.scores_color = (255, 255, 255)
 
+        self.right_key = pygame.K_RIGHT
+        self.left_key = pygame.K_LEFT
+        self.up_key = pygame.K_UP
+        self.down_key = pygame.K_DOWN
+
         self.timer = None
         self.include_timer = include_timer
 
         self.update_delay_sec = .120
+        self.max_user_actions_per_update = 2
 
         pygame.init()
         pygame.font.init()
@@ -35,7 +41,7 @@ class SnakeGUI():
         self.env = env
 
     
-    def render(self):
+    def render(self, user_mode):
         if self.include_timer and self.timer is not None:
             time_diff = time.perf_counter() - self.timer
 
@@ -49,8 +55,29 @@ class SnakeGUI():
         self.draw_scores(self.env.best_score, self.env.curr_score)
         pygame.display.update()
 
+        if user_mode:
+            actions = []
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit(code=0)
+            
+                elif event.type == pygame.KEYDOWN and len(actions) < self.max_user_actions_per_update:
+                    if event.key == self.right_key:
+                        actions.append(self.env.action_right)
+                    elif event.key == self.left_key:
+                        actions.append(self.env.action_left)
+                    elif event.key == self.up_key:
+                        actions.append(self.env.action_up)
+                    elif event.key == self.down_key:
+                        actions.append(self.env.action_down)    
+
         if self.include_timer:
             self.timer = time.perf_counter()
+        
+        if user_mode:
+            return actions
 
 
     
@@ -96,9 +123,14 @@ class SnakeGUI():
 
         pygame.draw.rect(self.window, self.apple_color, [apple.column*self.square_len, apple.row*self.square_len, self.square_len,
         self.square_len])
-    
+
+
+    def reset(self):
+        self.timer = None
+
 
     def close(self):
         pygame.display.quit()
         pygame.quit()
         self.window = None
+        self.timer = None

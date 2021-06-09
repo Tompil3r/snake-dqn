@@ -28,12 +28,13 @@ class SnakeEnv():
         self.head_index = 0
 
         # movement attributes
-        self.right_dir = 0
-        self.left_dir = 1
-        self.up_dir = 2
-        self.down_dir = 3
+        self.action_right = 0
+        self.action_left = 1
+        self.action_up = 2
+        self.action_down = 3
 
-        self.action_map = {self.right_dir:Point(0, 1), self.left_dir:Point(0, -1), self.up_dir:Point(-1, 0), self.down_dir:Point(1, 0)}
+        self.action_map = {self.action_right:Point(0, 1), self.action_left:Point(0, -1), self.action_up:Point(-1, 0),
+        self.action_down:Point(1, 0)}
 
         # state attributes
         self.state = None
@@ -169,12 +170,13 @@ class SnakeEnv():
 
 
     def reset(self):
+        self.gui.reset()
         self.snake = None
         self.apple = None
         self.dir = None
         self.last_tail = None
 
-        self.dir = self.get_dir(self.right_dir)
+        self.dir = self.get_dir(self.action_right)
         self.init_snake()
         self.randomize_apple()
         self.state = self.get_state()
@@ -279,9 +281,9 @@ class SnakeEnv():
         return np.copy(self.state), reward, done, info
 
 
-    def render(self):
+    def render(self, user_mode=False):
         assert self.gui is not None, 'self.render (SnakeEnv): gui must not be None'
-        self.gui.render()
+        return self.gui.render(user_mode)
     
 
     def close(self):
