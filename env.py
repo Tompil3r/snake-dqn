@@ -21,7 +21,7 @@ class SnakeEnv():
         self.last_tail = None
         self.dir = None
         self.snake_starting_len = 3
-        self.head_starting_point = Point(self.height//2, self.board//2)
+        self.head_starting_point = Point(self.height//2, self.width//2)
         
         # functional attributes
         self.max_spawning_attempts = 100
@@ -133,7 +133,7 @@ class SnakeEnv():
                 if idx == self.head_index:
                     state[point.row, point.column] = self.head_value
                 else:
-                    state[point.row, point.column] = self.body_valu
+                    state[point.row, point.column] = self.body_value
         
         if self.apple is not None:
             state[self.apple.row, self.apple.column] = self.apple_value
@@ -222,7 +222,7 @@ class SnakeEnv():
     
 
     def is_game_over(self):
-        return not self.in_bounds(self.snake[self.head_index]) or self.is_snake_occupying(self.snake[self.head], include_head=False)
+        return not self.in_bounds(self.snake[self.head_index]) or self.is_snake_occupying(self.snake[self.head_index], include_head=False)
     
 
     def spawn_tail(self):
@@ -243,7 +243,7 @@ class SnakeEnv():
 
         if self.is_eating_apple():
             self.curr_score += 1
-            info[f'Event{event_idx}':'Apple Eaten']
+            info[f'Event-{event_idx}'] = 'Apple Eaten'
             event_idx += 1
             
             reward += self.get_reward(self.eating_apple_code)
@@ -255,7 +255,7 @@ class SnakeEnv():
 
             if self.is_board_full():
                 done = True
-                info[f'Event{event_idx}':'Game Won']
+                info[f'Event-{event_idx}'] = 'Game Won'
                 event_idx += 1
                 reward += self.get_reward(self.winning_game_code)
             else:
@@ -264,7 +264,7 @@ class SnakeEnv():
         else:
             if self.is_game_over():
                 done = True
-                info[f'Event{event_idx}':'Game Lost']
+                info[f'Event-{event_idx}'] = 'Game Lost'
                 event_idx += 1
                 reward += self.get_reward(self.losing_game_code)
 
