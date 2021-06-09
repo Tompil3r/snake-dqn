@@ -1,3 +1,4 @@
+from gui import SnakeGUI
 from observation_space import ObservationSpace
 from action_space import ActionSpace
 from collections import namedtuple, deque
@@ -5,7 +6,6 @@ import numpy as np
 
 
 Point = namedtuple('Point', ['row', 'column'])
-
 
 
 class SnakeEnv():
@@ -62,7 +62,7 @@ class SnakeEnv():
         self.reward_map = {self.normal_move_code:None, self.eating_apple_code:3, self.winning_game_code:1000, self.losing_game_code:-1000}
    
         # gui
-
+        self.gui = SnakeGUI(self, include_timer=True)
 
 
     def get_reward(self, game_code):
@@ -70,7 +70,7 @@ class SnakeEnv():
             assert self.snake is not None, 'self.get_reward (SnakeEnv): snake must not be none'
             assert self.apple is not None, 'self.get_reward (SnakeEnv): apple must not be none'
 
-            diff = self.sub_points(self.snake[self.head], self.apple)
+            diff = self.sub_points(self.snake[self.head_index], self.apple)
             distance = np.sqrt(np.square(diff.row) + np.square(diff.column))
             return 1/(distance + 1)
         try:
@@ -107,8 +107,8 @@ class SnakeEnv():
         assert self.snake is not None, 'self.is_snake_occupying (SnakeEnv): snake must not be None'
 
         for idx,_point in enumerate(self.snake):
-            if include_head and idx == self.head_index:
-                if point == _point:
+            if idx == self.head_index:
+                if include_head and point == _point:
                     return True
             
             else:
@@ -273,12 +273,20 @@ class SnakeEnv():
             
             else:
                 reward += self.get_reward(self.normal_move_code)
+                info[f'Event-{event_idx}'] = 'Normal Move'
+                event_idx += 1
         
         return np.copy(self.state), reward, done, info
 
 
     def render(self):
-        pass
+        assert self.gui is not None, 'self.render (SnakeEnv): gui must not be None'
+        self.gui.render()
+    
+
+    def close(self):
+        assert self.gui is not None, 'self.close (SnakeEnv): gui must not be None'
+        self.gui.close()
 
 
 

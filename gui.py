@@ -37,10 +37,10 @@ class SnakeGUI():
     
     def render(self):
         if self.include_timer and self.timer is not None:
-            time_diff = time.perf_counter() - self.timer()
+            time_diff = time.perf_counter() - self.timer
 
             if time_diff < self.update_delay_sec:
-                pygame.time.delay(self.update_delay_sec*1000 - time_diff*1000)
+                pygame.time.delay(int(self.update_delay_sec*1000 - time_diff*1000))
         
         self.window = pygame.display.set_mode((self.window_width, self.window_height))
         self.draw_background(self.env.width, self.env.height)
