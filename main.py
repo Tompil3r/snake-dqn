@@ -4,7 +4,6 @@ import numpy as np
 
 env = SnakeEnv()
 
-states = []
 # state = env.reset()
 for i in range(1):
     done = False
@@ -16,16 +15,12 @@ for i in range(1):
             for action in actions:
                 new_state, reward, done, info = env.step(action)
                 state = new_state
-                states.append(state)
-                # print(reward, done, info, end='\r')
+                print(reward, done, info, end='\r')
             
         else:
             new_state, reward, done, info = env.step(None)
             state = new_state
-            states.append(state)
-            # print(reward, done, info, end='\r')
+            print(reward, done, info, end='\r')
 
-for s in state:
-    print(np.array_equal(s, state[0]))
 
 env.close()

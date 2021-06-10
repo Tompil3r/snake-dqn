@@ -83,8 +83,8 @@ class SnakeEnv():
         self.reward_system_4 = RewardSystem({
             self.normal_move_code: lambda : 0,
             self.eating_apple_code: lambda : 1,
-            self.winning_game_code: lambda : 10,
-            self.losing_game_code: lambda : -1,
+            self.winning_game_code: lambda : 100,
+            self.losing_game_code: lambda : -100,
         })
 
 
