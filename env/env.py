@@ -1,3 +1,4 @@
+from env.reward_systen import RewardSystem
 from env.gui import SnakeGUI
 from env.observation_space import ObservationSpace
 from env.action_space import ActionSpace
@@ -57,27 +58,50 @@ class SnakeEnv():
         self.winning_game_code = 2
         self.losing_game_code = 3
 
-        # rewards
-        # normal_move_code is implemented with the function: reward = 1/(r+1) - where r is the distance
-        # between the head of the snake to the apple
-        self.reward_map = {self.normal_move_code:None, self.eating_apple_code:3, self.winning_game_code:1000, self.losing_game_code:-1000}
-   
+        # reward systems
+        self.reward_system_1 = RewardSystem({
+            self.normal_move_code: lambda env : 1/(env.sum_point(env.abs_point(env.sub_points(env.snake[env.head_index], env.apple))) + 1),
+            self.eating_apple_code: lambda env : 3,
+            self.winning_game_code: lambda env : 1000,
+            self.losing_game_code: lambda env: -1000
+        })
+
+        self.reward_system_2 = RewardSystem({
+            self.normal_move_code: lambda : -0.1,
+            self.eating_apple_code: lambda : 3,
+            self.winning_game_code: lambda : 1000,
+            self.losing_game_code: lambda : -1000,
+        })
+
+        self.reward_system_3 = RewardSystem({
+            self.normal_move_code: lambda : 0,
+            self.eating_apple_code: lambda : 3,
+            self.winning_game_code: lambda : 1000,
+            self.losing_game_code: lambda : -1000,
+        })
+
+        self.reward_system_4 = RewardSystem({
+            self.normal_move_code: lambda : 0,
+            self.eating_apple_code: lambda : 1,
+            self.winning_game_code: lambda : 10,
+            self.losing_game_code: lambda : -1,
+        })
+
+
         # gui
         self.gui = SnakeGUI(self, include_timer=True)
 
 
-    def get_reward(self, game_code):
-        if game_code == self.normal_move_code:
-            assert self.snake is not None, 'self.get_reward (SnakeEnv): snake must not be none'
-            assert self.apple is not None, 'self.get_reward (SnakeEnv): apple must not be none'
-
-            diff = self.sub_points(self.snake[self.head_index], self.apple)
-            distance = np.sqrt(np.square(diff.row) + np.square(diff.column))
-            return 1/(distance + 1)
-        try:
-            return self.reward_map[game_code]
-        except KeyError:
-            raise Exception('self.get_reward (SnakeEnv): invalid game code')
+    def get_reward(self, game_code, reward_system=4):
+        if reward_system == 1:
+            return self.reward_system_1.get_reward(game_code, self)
+        elif reward_system == 2:
+            return self.reward_system_2.get_reward(game_code)
+        elif reward_system == 3:
+            return self.reward_system_3.get_reward(game_code)
+        elif reward_system == 4:
+            return self.reward_system_4.get_reward(game_code)
+        
 
     
     def get_dir(self, action):
@@ -94,6 +118,14 @@ class SnakeEnv():
 
     def sub_points(self, point_a, point_b):
         return Point(point_a.row - point_b.row, point_a.column - point_b.column)
+
+
+    def sum_point(self, point):
+        return point.row + point.column
+    
+
+    def abs_point(self, point):
+        return Point(abs(point.row), abs(point.column))
 
 
     def copy_point(self, point):
@@ -131,6 +163,9 @@ class SnakeEnv():
 
         if self.snake is not None:
             for idx,point in enumerate(self.snake):
+                if not self.in_bounds(point):
+                    continue
+
                 if idx == self.head_index:
                     state[point.row, point.column] = self.head_value
                 else:
@@ -265,6 +300,8 @@ class SnakeEnv():
                 self.randomize_apple()
 
         else:
+            self.state = self.get_state()
+
             if self.is_game_over():
                 done = True
                 info[f'Event-{event_idx}'] = 'Game Lost'
@@ -282,20 +319,11 @@ class SnakeEnv():
         return np.copy(self.state), reward, done, info
 
 
-    def render(self, user_mode=False):
+    def render(self, mode='human', user_control=False):
         assert self.gui is not None, 'self.render (SnakeEnv): gui must not be None'
-        return self.gui.render(user_mode)
+        return self.gui.render(mode, user_control)
     
 
     def close(self):
         assert self.gui is not None, 'self.close (SnakeEnv): gui must not be None'
         self.gui.close()
-
-
-
-            
-
-            
-            
-    
-

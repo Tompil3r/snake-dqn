@@ -41,7 +41,7 @@ class SnakeGUI():
         self.env = env
 
     
-    def render(self, user_mode):
+    def render(self, mode, user_control):
         if self.include_timer and self.timer is not None:
             time_diff = time.perf_counter() - self.timer
 
@@ -55,7 +55,7 @@ class SnakeGUI():
         self.draw_scores(self.env.best_score, self.env.curr_score)
         pygame.display.update()
 
-        if user_mode:
+        if user_control:
             actions = []
 
             for event in pygame.event.get():
@@ -76,7 +76,7 @@ class SnakeGUI():
         if self.include_timer:
             self.timer = time.perf_counter()
         
-        if user_mode:
+        if user_control:
             return actions
 
 
