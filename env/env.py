@@ -1,6 +1,6 @@
-from gui import SnakeGUI
-from observation_space import ObservationSpace
-from action_space import ActionSpace
+from env.gui import SnakeGUI
+from env.observation_space import ObservationSpace
+from env.action_space import ActionSpace
 from collections import namedtuple, deque
 import numpy as np
 
