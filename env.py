@@ -171,6 +171,7 @@ class SnakeEnv():
 
     def reset(self):
         self.gui.reset()
+        self.curr_score = 0
         self.snake = None
         self.apple = None
         self.dir = None
