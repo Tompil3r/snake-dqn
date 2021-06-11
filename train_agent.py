@@ -1,14 +1,14 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 from env.env import SnakeEnv
 from nn.model import Model
 from nn.agent import Agent
-from tensorflow.keras.callbacks import CSVLogger
-import numpy as np
+
 
 env = SnakeEnv()
 
-log_path = 'agent_log.txt'
-
-state_shape = (1,) + env.observation_space.shape
+state_shape = env.observation_space.shape
 nb_actions = env.action_space.nb_actions
 memory_limit = 10000
 eps_max_value = 1.
@@ -23,5 +23,3 @@ agent.compile('adam', metrics=['mae'])
 
 training_history = agent.fit(env, training_nb_steps, visualize=False, verbose=1)
 agent.save_weights('snake_model_weights.h5', overwrite=True)
-
-np.savetxt(log_path, np.array(training_history), delimiter=",")

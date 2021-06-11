@@ -26,6 +26,7 @@ class SnakeGUI():
         self.left_key = pygame.K_LEFT
         self.up_key = pygame.K_UP
         self.down_key = pygame.K_DOWN
+        self.switch_mode_key = pygame.K_SPACE
 
         self.timer = None
         self.include_timer = include_timer
@@ -55,29 +56,40 @@ class SnakeGUI():
         self.draw_scores(self.env.best_score, self.env.curr_score)
         pygame.display.update()
 
-        if user_control:
-            actions = []
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit(code=0)
-            
-                elif event.type == pygame.KEYDOWN and len(actions) < self.max_user_actions_per_update:
-                    if event.key == self.right_key:
-                        actions.append(self.env.action_right)
-                    elif event.key == self.left_key:
-                        actions.append(self.env.action_left)
-                    elif event.key == self.up_key:
-                        actions.append(self.env.action_up)
-                    elif event.key == self.down_key:
-                        actions.append(self.env.action_down)    
+        user_actions = []
+        switch_mode = False
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.display.quit()
+                pygame.quit()
+                quit(code=0)
+        
+            elif user_control and event.type == pygame.KEYDOWN and len(user_actions) < self.max_user_actions_per_update:
+                if event.key == self.right_key:
+                    user_actions.append(self.env.action_right)
+                elif event.key == self.left_key:
+                    user_actions.append(self.env.action_left)
+                elif event.key == self.up_key:
+                    user_actions.append(self.env.action_up)
+                elif event.key == self.down_key:
+                    user_actions.append(self.env.action_down)
+                elif event.key == self.switch_mode_key:
+                    switch_mode = True
+                
+            elif event.type == pygame.KEYDOWN:
+                if event.key == self.switch_mode_key:
+                    switch_mode = True
+
 
         if self.include_timer:
             self.timer = time.perf_counter()
         
         if user_control:
-            return actions
+            return user_actions, switch_mode
+        
+        return None, switch_mode
 
 
     
