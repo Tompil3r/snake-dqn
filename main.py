@@ -1,4 +1,4 @@
-import game_manager
+from env import game_manager
 
 if __name__ == '__main__':
     game_manager.play_game()
