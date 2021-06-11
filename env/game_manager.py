@@ -14,7 +14,7 @@ def play_game():
     nb_actions = env.action_space.nb_actions
 
     model = Model.build_model(state_shape, nb_actions, name='Snake-Model')
-    weights_path = 'snake_model_weights.h5'
+    weights_path = 'agent_misc/snake_model_weights.h5'
     weights_loading_try = 0
 
 
