@@ -1,4 +1,4 @@
-from env.reward_systen import RewardSystem
+from env.reward_system import RewardSystem
 from env.gui import SnakeGUI
 from env.observation_space import ObservationSpace
 from env.action_space import ActionSpace
