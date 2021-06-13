@@ -2,8 +2,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from env.env import SnakeEnv
-from nn.agent import Agent
-from nn.model import Model
+from nn.agent import DQNAgent
 
 
 def main():
@@ -13,14 +12,14 @@ def main():
     state_shape = env.observation_space.shape
     nb_actions = env.action_space.nb_actions
 
-    model = Model.build_model(state_shape, nb_actions, name='Snake-Model')
+    agent = DQNAgent(state_shape, nb_actions)
     weights_path = 'agent_misc/snake_model_weights.h5'
     weights_loading_try = 0
 
 
     while True:
         try:
-            model.load_weights(weights_path)
+            agent.load_weights(weights_path)
             break
 
         except Exception:
@@ -68,7 +67,7 @@ def main():
                     state = new_state
             
             else:
-                action = Agent.predict(model, state)
+                action = agent.act(state)
                 new_state, reward, done, info = env.step(action)
 
     
