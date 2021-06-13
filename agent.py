@@ -7,10 +7,10 @@ from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 import random
 import numpy as np
-from tensorflow.python.keras.backend_config import epsilon
+import time
 
 
-Memory = namedtuple('Memory', (['state', 'action', 'reward', 'next_state', 'done']))
+Memory = namedtuple('Memory', ['states', 'actions', 'rewards', 'next_states'])
 
 
 class DQNAgent():
@@ -20,7 +20,7 @@ class DQNAgent():
         self.state_sample_shape = (1,) + self.state_shape
         self.nb_actions = nb_actions
 
-        self.memory = deque(maxlen=memory_limit)
+        self.memory = Memory(deque(maxlen=memory_limit), deque(maxlen=memory_limit), deque(maxlen=memory_limit), deque(maxlen=memory_limit))
 
         self.gamma = gamma
         self.eps = eps
@@ -51,8 +51,11 @@ class DQNAgent():
         return model
     
 
-    def store_experience(self, state, action, reward, next_state, done):
-        self.memory.append(Memory(state, action, reward, next_state, done))
+    def store_experience(self, state, action, reward, next_state):
+        self.memory.states.append(state)
+        self.memory.actions.append(action)
+        self.memory.rewards.append(reward)
+        self.memory.next_states.append(next_state)
 
 
     def create_experiences(self, env, nb_steps, nb_max_episode_steps=-1):
@@ -69,7 +72,7 @@ class DQNAgent():
 
             next_state = np.reshape(next_state, self.state_sample_shape)
 
-            self.store_experience(state, action, reward, next_state, done)
+            self.store_experience(state, action, reward, next_state)
             state = next_state
 
             if step == nb_max_episode_steps:
@@ -77,10 +80,25 @@ class DQNAgent():
 
 
     def get_batch(self, batch_size):
-        try:
-            return random.sample(self.memory, batch_size)
-        except:
-            return self.memory
+        memory_size = len(self.memory.states)
+        states = np.empty(shape=(batch_size,) + self.state_shape)
+        actions = np.empty(shape=(batch_size,), dtype=np.int32)
+        rewards = np.empty(shape=(batch_size,))
+        next_states = np.empty(shape=(batch_size,) + self.state_shape)
+
+        if batch_size <= memory_size:
+            indices = random.sample(range(memory_size), batch_size)
+            
+        else:
+            indices = np.random.randint(0, memory_size, batch_size)
+
+        for sample_idx, idx in enumerate(indices):
+            states[sample_idx] = self.memory.states[idx]
+            actions[sample_idx] = self.memory.actions[idx]
+            rewards[sample_idx] = self.memory.rewards[idx]
+            next_states[sample_idx] = self.memory.next_states[idx]
+
+        return states, actions, rewards, next_states
 
     
     def act(self, state, training=False):
@@ -96,21 +114,17 @@ class DQNAgent():
     
 
     def replay_experience(self, batch_size):
-        minibatch = self.get_batch(batch_size)
+        states, actions, rewards, next_states = self.get_batch(batch_size)
 
-        for memory in minibatch:
-            target = self.model.predict(memory.state)
+        target = self.model.predict(states)
+        future_q_values = self.target_model.predict(next_states)
 
-            if memory.done:
-                target[0][memory.action] = memory.reward
+        for idx in range(batch_size):
+            target[idx, actions[idx]] = rewards[idx] + self.gamma * np.amax(future_q_values[idx])
 
-            else:
-                future_q_values = self.target_model.predict(memory.next_state)[0]
-                target[0][memory.action] = memory.reward + self.gamma * np.amax(future_q_values)
 
-            self.model.fit(memory.state, target, epochs=1, verbose=0)
-
-            self.eps = max(self.min_eps, self.eps*self.eps_decay)
+        self.model.fit(states, target, epochs=1, verbose=0)
+        self.eps = max(self.min_eps, self.eps*self.eps_decay)
     
 
     def save_weights(self, filepath):
@@ -125,6 +139,8 @@ class DQNAgent():
     
 
     def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, verbose=1, visualize=False):
+        start_time = time.perf_counter()
+
         episodes = []
         rewards = []
         steps = []
@@ -145,14 +161,16 @@ class DQNAgent():
                 rewards.append(episode_reward)
                 steps.append(episode_step)
 
+                if verbose == 1:
+                    print((f'step {step}/{nb_steps} - episode reward {episode_reward} - {step*100/nb_steps}% - time '
+                    f'{time.perf_counter() - start_time:.3f}s'), end='\r')
+
+                episode_nb += 1
                 episode_step = 0
                 episode_reward = 0
                 done = False
 
                 state = env.reset()
-
-                if verbose == 1:
-                    print(f'step {step}/{nb_steps} - episode reward {episode_reward} - {step*100/nb_steps}%', end='\r')
 
 
             state = np.reshape(state, self.state_sample_shape)
@@ -162,7 +180,7 @@ class DQNAgent():
 
             next_state = np.reshape(next_state, self.state_sample_shape)
 
-            self.store_experience(state, action, reward, next_state, done)
+            self.store_experience(state, action, reward, next_state)
             state = next_state
 
             if step % target_weights_update == 0:
@@ -174,12 +192,17 @@ class DQNAgent():
                 done = True
 
             if verbose == 2:
-                print(f'step {step+1}/{nb_steps} - reward {reward} - {(step+1)*100/nb_steps}%', end='\r')
+                print(f'step {step+1}/{nb_steps} - reward {reward} - {(step+1)*100/nb_steps}% - time {time.pert_counter() - start_time:.3f}s',
+                end='\r')
+
+            episode_step += 1
 
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
 
 
     def test(self, env, nb_episodes, nb_max_episode_steps=-1, verbose=1, visualize=True):
+        start_time = time.perf_counter()
+
         episodes = []
         rewards = []
         steps = []
@@ -208,13 +231,15 @@ class DQNAgent():
                     done = True
 
                 if verbose == 2:
-                    print(f'step {episode_step} - episode {episode+1}/{nb_episodes} - reward {reward} - {(episode+1)*100/nb_episodes}%', end='\r')
+                    print((f'step {episode_step} - episode {episode+1}/{nb_episodes} - reward {reward} - {(episode+1)*100/nb_episodes}% - '
+                    f'time {time.perf_counter() - start_time:.3f}s'), end='\r')
             
             episodes.append(episode)
             rewards.append(episode_reward)
             steps.append(episode_step)
 
             if verbose == 1:
-                print(f'episode {episode+1}/{nb_episodes} - episode reward {episode_reward} - {(episode+1)*100/nb_episodes}%')
+                print((f'episode {episode+1}/{nb_episodes} - episode reward {episode_reward} - {(episode+1)*100/nb_episodes}% - '
+                f'time {time.perf_counter() - start_time:.3f}s'), end='\r')
         
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
