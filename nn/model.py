@@ -7,6 +7,7 @@ class Model():
     '''
 
     def build_model(state_shape, nb_actions, name='model'):
+        print(state_shape)
         return Sequential(layers=[
             Flatten(input_shape=state_shape),
             Dense(units=32, activation='relu'),

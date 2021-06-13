@@ -14,9 +14,17 @@ class Agent():
         test_policy = GreedyQPolicy()
         memory = SequentialMemory(limit=memory_limit, window_length=1)
         
-        return DQNAgent(model, memory=memory, policy=decay_policy, test_policy=test_policy, enable_double_dqn=True,
+        return DQNAgent(model, memory=memory, policy=decay_policy, test_policy=test_policy, enable_double_dqn=False,
         nb_actions=nb_actions)
     
+
+    def build_agent2(model, nb_actions, memory_limit, eps=.1):
+        policy = EpsGreedyQPolicy(eps=eps)
+        test_policy = GreedyQPolicy()
+        memory = SequentialMemory(memory_limit, window_length=1)
+
+        return DQNAgent(model, policy=policy, test_policy=test_policy, memory=memory, enable_double_dqn=True, nb_actions=nb_actions)
+
 
     def predict(model, state):
         state = np.reshape(state, (1,) + state.shape)

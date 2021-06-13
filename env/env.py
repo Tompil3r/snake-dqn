@@ -1,4 +1,3 @@
-from env.reward_system import RewardSystem
 from env.gui import SnakeGUI
 from env.observation_space import ObservationSpace
 from env.action_space import ActionSpace
@@ -58,50 +57,16 @@ class SnakeEnv():
         self.winning_game_code = 2
         self.losing_game_code = 3
 
-        # reward systems
-        self.reward_system_1 = RewardSystem({
-            self.normal_move_code: lambda env : 1/(env.sum_point(env.abs_point(env.sub_points(env.snake[env.head_index], env.apple))) + 1),
-            self.eating_apple_code: lambda env : 3,
-            self.winning_game_code: lambda env : 1000,
-            self.losing_game_code: lambda env: -1000
-        })
-
-        self.reward_system_2 = RewardSystem({
-            self.normal_move_code: lambda : -0.1,
-            self.eating_apple_code: lambda : 3,
-            self.winning_game_code: lambda : 1000,
-            self.losing_game_code: lambda : -1000,
-        })
-
-        self.reward_system_3 = RewardSystem({
-            self.normal_move_code: lambda : 0,
-            self.eating_apple_code: lambda : 3,
-            self.winning_game_code: lambda : 1000,
-            self.losing_game_code: lambda : -1000,
-        })
-
-        self.reward_system_4 = RewardSystem({
-            self.normal_move_code: lambda : 0,
-            self.eating_apple_code: lambda : 1,
-            self.winning_game_code: lambda : 100,
-            self.losing_game_code: lambda : -100,
-        })
+        # rewards
+        self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:100, self.losing_game_code:-10}
 
 
         # gui
         self.gui = SnakeGUI(self, include_timer=True)
 
 
-    def get_reward(self, game_code, reward_system=4):
-        if reward_system == 1:
-            return self.reward_system_1.get_reward(game_code, self)
-        elif reward_system == 2:
-            return self.reward_system_2.get_reward(game_code)
-        elif reward_system == 3:
-            return self.reward_system_3.get_reward(game_code)
-        elif reward_system == 4:
-            return self.reward_system_4.get_reward(game_code)
-        
+    def get_reward(self, game_code):
+        return self.rewards_map[game_code]
 
     
     def get_dir(self, action):

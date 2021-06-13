@@ -8,12 +8,12 @@ from nn.agent import Agent
 
 env = SnakeEnv()
 
-state_shape = env.observation_space.shape
+state_shape = (1,) + env.observation_space.shape
 nb_actions = env.action_space.nb_actions
 memory_limit = 10000
 eps_max_value = 1.
 eps_min_value = 0.01
-training_nb_steps = 1000000
+training_nb_steps = 50_000
 eps_decay_nb_steps = training_nb_steps // 5
 
 
