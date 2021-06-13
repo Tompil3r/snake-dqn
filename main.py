@@ -1,8 +1,8 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-from env.env import SnakeEnv
-from nn.agent import DQNAgent
+from env import SnakeEnv
+from agent import DQNAgent
 
 
 def main():

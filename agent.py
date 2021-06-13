@@ -1,3 +1,6 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 from collections import namedtuple, deque
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense
