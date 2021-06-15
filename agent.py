@@ -87,7 +87,7 @@ class DQNAgent():
         actions = np.empty(shape=(batch_size,), dtype=np.int32)
         rewards = np.empty(shape=(batch_size,), dtype=np.float64)
         next_states = np.empty(shape=(batch_size,) + self.state_shape, dtype=np.float64)
-        terminals = np.empty(shape=(batch_size,), dtype=np.bool)
+        terminals = np.empty(shape=(batch_size,), dtype=np.int8)
 
         if batch_size <= memory_size:
             indices = random.sample(range(memory_size), batch_size)
@@ -100,7 +100,7 @@ class DQNAgent():
             actions[sample_idx] = self.memory.actions[idx]
             rewards[sample_idx] = self.memory.rewards[idx]
             next_states[sample_idx] = self.memory.next_states[idx]
-            terminals[sample_idx] = self.memory.terminals[idx]
+            terminals[sample_idx] = not self.memory.terminals[idx] # invert terminals value
 
         return states, actions, rewards, next_states, terminals
 
@@ -124,11 +124,13 @@ class DQNAgent():
         future_q_values = self.target_model.predict(next_states)
 
         for idx in range(batch_size):
-            if terminals[idx]:
-                target[idx, actions[idx]] = rewards[idx]
-            else:
-                target[idx, actions[idx]] = rewards[idx] + self.gamma * np.amax(future_q_values[idx])
+            # if current state is terminal -> terminals[idx] = 0 -> target = rewards[idx] + terminals[idx] * self.gamma 
+            #  * np.amax(future_q_values[idx]) = reward only
 
+            # if current state is NOT terminal -> terminals[idx] = 1 -> target = rewards[idx] + terminals[idx] * self.gamma
+            # * np.amax(future_q_values[idx]) = reward + expected return from next state
+
+            target[idx, actions[idx]] = rewards[idx] + terminals[idx] * self.gamma * np.amax(future_q_values[idx])
 
         self.model.fit(states, target, epochs=1, verbose=0)
         self.eps = max(self.min_eps, self.eps*self.eps_decay)
