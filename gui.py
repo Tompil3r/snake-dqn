@@ -49,7 +49,9 @@ class SnakeGUI():
             if time_diff < self.update_delay_sec:
                 pygame.time.delay(int(self.update_delay_sec*1000 - time_diff*1000))
         
-        self.window = pygame.display.set_mode((self.window_width, self.window_height))
+        if self.window is None:
+            self.window = pygame.display.set_mode((self.window_width, self.window_height))
+        
         self.draw_background(self.env.width, self.env.height)
         self.draw_snake(self.env.snake)
         self.draw_apple(self.env.apple)
