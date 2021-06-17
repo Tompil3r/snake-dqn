@@ -1,4 +1,5 @@
 import os
+from re import L
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from collections import namedtuple, deque
@@ -15,7 +16,7 @@ Memory = namedtuple('Memory', ['states', 'actions', 'rewards', 'next_states', 't
 
 class DQNAgent():
     def __init__(self, state_shape, nb_actions, model=None, target_model=None, memory_limit=50_000, gamma=.99,
-    eps=1., min_eps=.1, eps_decay=.995, learning_rate=.0001):
+    eps=1., min_eps=.1, eps_decay_steps=None, learning_rate=.0001):
         self.state_shape = state_shape
         self.state_batch_shape = (1,) + self.state_shape
         self.nb_actions = nb_actions
@@ -26,7 +27,7 @@ class DQNAgent():
         self.gamma = gamma
         self.eps = eps
         self.min_eps = min_eps
-        self.eps_decay = eps_decay
+        self.eps_decay = 0 if eps_decay_steps is None else ((eps-min_eps)/eps_decay_steps)
         self.learning_rate = learning_rate
 
         self.model = model if model is not None else self.build_default_model(name='model')
@@ -44,6 +45,8 @@ class DQNAgent():
             Dense(32, activation='relu'),
             Dense(64, activation='relu'),
             Dense(128, activation='relu'),
+            Dense(256, activation='relu'),
+            Dense(512, activation='relu'),
             Dense(self.nb_actions, activation='linear'),
         ], name=name)
 
@@ -69,7 +72,7 @@ class DQNAgent():
                 state = env.reset()
             
             state = self.preprocess_state(state)
-            action = self.act(state, training=True)
+            action = self.select_action(state, training=True)
             next_state, reward, done, info = env.step(action)
 
             next_state = self.preprocess_state(next_state)
@@ -104,8 +107,39 @@ class DQNAgent():
 
         return states, actions, rewards, next_states, terminals
 
+
+    def logger(self, nb_episodes=None, nb_steps=None, episode_nb=None, step_nb=None, episode_reward=None, start_time=None,
+    final_log=False, bar_length=50, clear_line=True):
+
+        clear_log = '\033[2K' if clear_line else ''
+        progress_log = ''
+        reward_log = ''
+        time_log = ''
+        param_log = f' - eps {self.eps:.3f}'
+        log_end = '\n' if final_log else '\r'
+
+        if nb_episodes is not None:
+            progress = int((episode_nb/nb_episodes)*bar_length)
+            progress_log = f' - episode ({episode_nb}/{nb_episodes}) - {episode_nb*100/nb_episodes:.2f}%'
+        else:
+            progress = int((step_nb/nb_steps)*bar_length)
+
+            if episode_nb is not None:
+                progress_log = f' - episode {episode_nb} - step ({step_nb}/{nb_steps}) - {step_nb*100/nb_steps:.2f}%'
+            else:
+                progress_log = f' - step ({step_nb}/{nb_steps})'
+
+        if episode_reward is not None:
+            reward_log = f' - episode reward {episode_reward:.2f}'
+        
+        if start_time is not None:
+            time_log = f' - time {time.perf_counter() - start_time:.2f}s'
+
+        log = clear_log + f"[{'='*(progress-1)}{'>'*min(1, progress)}{'.'*(bar_length-progress)}]" + progress_log + reward_log + param_log + time_log + log_end
+        print(log, end='')
+
     
-    def act(self, state, training=False):
+    def select_action(self, state, training=False):
         if not training:
             q_values = self.model.predict(state)[0]
             return np.argmax(q_values)
@@ -117,7 +151,7 @@ class DQNAgent():
         return np.argmax(q_values)
     
 
-    def replay_experience(self, batch_size):
+    def replay_experience(self, batch_size, episode_nb):
         states, actions, rewards, next_states, terminals = self.get_batch(batch_size)
 
         target = self.model.predict(states)
@@ -133,7 +167,7 @@ class DQNAgent():
             target[idx, actions[idx]] = rewards[idx] + terminals[idx] * self.gamma * np.amax(future_q_values[idx])
 
         self.model.fit(states, target, epochs=1, verbose=0)
-        self.eps = max(self.min_eps, self.eps*self.eps_decay)
+        self.eps = max(self.min_eps, self.eps - self.eps_decay*episode_nb)
     
 
     def save_weights(self, filepath):
@@ -169,27 +203,8 @@ class DQNAgent():
             if visualize:
                 env.render()
 
-            if done:
-                self.replay_experience(batch_size)
-
-                episodes.append(episode_nb)
-                rewards.append(episode_reward)
-                steps.append(episode_step)
-
-                if verbose == 1:
-                    print((f'step {step}/{nb_steps} - episode reward {episode_reward} - {step*100/nb_steps}% - time '
-                    f'{time.perf_counter() - start_time:.3f}s'), end='\r')
-
-                episode_nb += 1
-                episode_step = 0
-                episode_reward = 0
-                done = False
-
-                state = env.reset()
-
-
             state = self.preprocess_state(state)
-            action = self.act(state, training=True)
+            action = self.select_action(state, training=True)
             next_state, reward, done, info = env.step(action)
             episode_reward += reward
 
@@ -204,11 +219,29 @@ class DQNAgent():
             if nb_max_episode_steps == episode_step:
                 done = True
 
-            if verbose == 2:
-                print(f'step {step+1}/{nb_steps} - reward {reward} - {(step+1)*100/nb_steps}% - time {time.pert_counter() - start_time:.3f}s',
-                end='\r')
-
             episode_step += 1
+            
+            if done:
+                self.replay_experience(batch_size, episode_nb)
+
+                episodes.append(episode_nb)
+                rewards.append(episode_reward)
+                steps.append(episode_step)
+
+                if verbose == 1:
+                    self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, start_time=start_time,
+                    final_log=False)
+
+                episode_nb += 1
+                episode_step = 0
+                episode_reward = 0
+                done = False
+
+                state = env.reset()
+        
+        if verbose == 1:
+            self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, start_time=start_time,
+            final_log=True)
 
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
 
@@ -231,7 +264,7 @@ class DQNAgent():
                     env.render()
                 
                 state = self.preprocess_state(state)
-                action = self.act(state)
+                action = self.select_action(state)
 
                 next_state, reward, done, info = env.step(action)
 
@@ -240,10 +273,6 @@ class DQNAgent():
 
                 if episode_step == nb_max_episode_steps:
                     done = True
-
-                if verbose == 2:
-                    print((f'step {episode_step} - episode {episode+1}/{nb_episodes} - reward {reward} - {(episode+1)*100/nb_episodes}% - '
-                    f'time {time.perf_counter() - start_time:.3f}s'), end='\r')
                 
                 episode_step += 1
             
@@ -252,7 +281,11 @@ class DQNAgent():
             steps.append(episode_step)
 
             if verbose == 1:
-                print((f'episode {episode+1}/{nb_episodes} - episode reward {episode_reward} - {(episode+1)*100/nb_episodes}% - '
-                f'time {time.perf_counter() - start_time:.3f}s'), end='\r')
+                self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, start_time=start_time,
+                    final_log=False)
+        
+        if verbose == 1:
+            self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, start_time=start_time,
+            final_log=True)
         
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}

@@ -86,7 +86,12 @@ class SnakeEnv():
 
 
     def get_reward(self, game_code):
-        return self.rewards_map[game_code]
+        reward = self.rewards_map[game_code]
+
+        if callable(reward):
+            return reward(self)
+
+        return reward
 
     
     def get_dir(self, action):
