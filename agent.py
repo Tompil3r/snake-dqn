@@ -151,7 +151,7 @@ class DQNAgent():
         return np.argmax(q_values)
     
 
-    def replay_experience(self, batch_size, episode_nb):
+    def replay_experience(self, batch_size, episode_step):
         states, actions, rewards, next_states, terminals = self.get_batch(batch_size)
 
         target = self.model.predict(states)
@@ -167,7 +167,7 @@ class DQNAgent():
             target[idx, actions[idx]] = rewards[idx] + terminals[idx] * self.gamma * np.amax(future_q_values[idx])
 
         self.model.fit(states, target, epochs=1, verbose=0)
-        self.eps = max(self.min_eps, self.eps - self.eps_decay*episode_nb)
+        self.eps = max(self.min_eps, self.eps - self.eps_decay*episode_step)
     
 
     def save_weights(self, filepath):
@@ -222,7 +222,7 @@ class DQNAgent():
             episode_step += 1
             
             if done:
-                self.replay_experience(batch_size, episode_nb)
+                self.replay_experience(batch_size, episode_step)
 
                 episodes.append(episode_nb)
                 rewards.append(episode_reward)
