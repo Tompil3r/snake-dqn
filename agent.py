@@ -170,6 +170,8 @@ class DQNAgent():
                 env.render()
 
             if done:
+                self.replay_experience(batch_size)
+
                 episodes.append(episode_nb)
                 rewards.append(episode_reward)
                 steps.append(episode_step)
@@ -199,8 +201,6 @@ class DQNAgent():
             if step % target_weights_update == 0:
                 self.update_target_weights()
             
-            self.replay_experience(batch_size)
-
             if nb_max_episode_steps == episode_step:
                 done = True
 
