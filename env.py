@@ -59,9 +59,9 @@ class SnakeEnv():
         # state attributes
         self.state = None
         self.empty_value = 0
-        self.body_value = 1
-        self.head_value = 2
-        self.apple_value = 3
+        self.body_value = 0.1
+        self.head_value = 0.2
+        self.apple_value = 0.3
 
         # score attributes
         self.best_score = 0
@@ -69,7 +69,7 @@ class SnakeEnv():
 
         # other properties
         self.action_space = ActionSpace(4)
-        self.observation_space = ObservationSpace(shape=(self.height, self.width), dtype=int)
+        self.observation_space = ObservationSpace(shape=(self.height, self.width), dtype=float)
 
         # game codes
         self.normal_move_code = 0

@@ -141,21 +141,21 @@ class DQNAgent():
     
     def select_action(self, state, training=False):
         if not training:
-            q_values = self.model.predict(state)[0]
+            q_values = self.model.predict_on_batch(state)[0]
             return np.argmax(q_values)
         
         if np.random.uniform() < self.eps:
             return np.random.randint(0, self.nb_actions)
         
-        q_values = self.model.predict(state)[0]
+        q_values = self.model.predict_on_batch(state)[0]
         return np.argmax(q_values)
     
 
     def replay_experience(self, batch_size, episode_step):
         states, actions, rewards, next_states, terminals = self.get_batch(batch_size)
 
-        target = self.model.predict(states)
-        future_q_values = self.target_model.predict(next_states)
+        target = self.model.predict_on_batch(states)
+        future_q_values = self.target_model.predict_on_batch(next_states)
 
         for idx in range(batch_size):
             # if current state is terminal -> terminals[idx] = 0 -> target = rewards[idx] + terminals[idx] * self.gamma 
@@ -166,7 +166,7 @@ class DQNAgent():
 
             target[idx, actions[idx]] = rewards[idx] + terminals[idx] * self.gamma * np.amax(future_q_values[idx])
 
-        self.model.fit(states, target, epochs=1, verbose=0)
+        self.model.train_on_batch(states, target)
         self.eps = max(self.min_eps, self.eps - self.eps_decay*episode_step)
     
 
