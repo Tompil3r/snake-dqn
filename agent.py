@@ -15,9 +15,9 @@ Memory = namedtuple('Memory', ['states', 'actions', 'rewards', 'next_states', 't
 
 class DQNAgent():
     def __init__(self, state_shape, nb_actions, model=None, target_model=None, memory_limit=50_000, gamma=.99,
-    eps=1., min_eps=.1, eps_decay=.97, learning_rate=.002):
+    eps=1., min_eps=.1, eps_decay=.995, learning_rate=.0001):
         self.state_shape = state_shape
-        self.state_sample_shape = (1,) + self.state_shape
+        self.state_batch_shape = (1,) + self.state_shape
         self.nb_actions = nb_actions
 
         self.memory = Memory(deque(maxlen=memory_limit), deque(maxlen=memory_limit), deque(maxlen=memory_limit),
@@ -68,11 +68,11 @@ class DQNAgent():
             if done:
                 state = env.reset()
             
-            state = np.reshape(state, self.state_sample_shape)
+            state = self.preprocess_state(state)
             action = self.act(state, training=True)
             next_state, reward, done, info = env.step(action)
 
-            next_state = np.reshape(next_state, self.state_sample_shape)
+            next_state = self.preprocess_state(next_state)
 
             self.store_experience(state, action, reward, next_state, done)
             state = next_state
@@ -147,6 +147,10 @@ class DQNAgent():
             self.update_target_weights()
     
 
+    def preprocess_state(self, state):
+        return np.reshape(state, self.state_batch_shape)
+    
+
     def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, verbose=1, visualize=False):
         start_time = time.perf_counter()
 
@@ -182,12 +186,12 @@ class DQNAgent():
                 state = env.reset()
 
 
-            state = np.reshape(state, self.state_sample_shape)
+            state = self.preprocess_state(state)
             action = self.act(state, training=True)
             next_state, reward, done, info = env.step(action)
             episode_reward += reward
 
-            next_state = np.reshape(next_state, self.state_sample_shape)
+            next_state = self.preprocess_state(next_state)
 
             self.store_experience(state, action, reward, next_state, done)
             state = next_state
@@ -226,7 +230,7 @@ class DQNAgent():
                 if visualize:
                     env.render()
                 
-                state = np.reshape(state, self.state_sample_shape)
+                state = self.preprocess_state(state)
                 action = self.act(state)
 
                 next_state, reward, done, info = env.step(action)
