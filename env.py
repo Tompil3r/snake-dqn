@@ -59,9 +59,9 @@ class SnakeEnv():
         # state attributes
         self.state = None
         self.empty_value = 0
-        self.body_value = 0.1
-        self.head_value = 0.2
-        self.apple_value = 0.3
+        self.body_value = 1
+        self.head_value = 2
+        self.apple_value = 3
 
         # score attributes
         self.best_score = 0
@@ -78,7 +78,7 @@ class SnakeEnv():
         self.losing_game_code = 3
 
         # rewards
-        self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:100, self.losing_game_code:-10}
+        self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
 
 
         # gui
