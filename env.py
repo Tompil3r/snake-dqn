@@ -80,9 +80,12 @@ class SnakeEnv():
         # rewards
         self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
 
-
         # gui
         self.gui = SnakeGUI(self, include_timer=True)
+
+        # no progress termination
+        self.termination_step = 300
+        self.no_progress_step_nb = 0
 
 
     def get_reward(self, game_code):
@@ -196,6 +199,7 @@ class SnakeEnv():
 
     def reset(self):
         self.gui.reset()
+        self.no_progress_step_nb = 0
         self.curr_score = 0
         self.snake = None
         self.apple = None
@@ -270,6 +274,7 @@ class SnakeEnv():
         self.snake, self.last_tail = self.get_next_snake()
 
         if self.is_eating_apple():
+            self.no_progress_step_nb = 0
             self.curr_score += 1
             info[f'Event-{event_idx}'] = 'Apple Eaten'
             event_idx += 1
@@ -302,9 +307,16 @@ class SnakeEnv():
                     self.best_score = self.curr_score
             
             else:
+                self.no_progress_step_nb += 1
                 reward += self.get_reward(self.normal_move_code)
                 info[f'Event-{event_idx}'] = 'Normal Move'
                 event_idx += 1
+
+                if self.no_progress_step_nb == self.termination_step:
+                    done = True
+                    reward += self.get_reward(self.losing_game_code)
+                    info[f'Event-{event_idx}'] = 'No Progress Termination'
+                    event_idx += 1
         
         return np.copy(self.state), reward, done, info
 

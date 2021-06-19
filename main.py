@@ -13,7 +13,7 @@ def main():
     nb_actions = env.action_space.nb_actions
 
     agent = DQNAgent(state_shape, nb_actions)
-    weights_path = 'agent_misc/snake_model_weights.h5'
+    weights_path = 'model_weights.h5'
     weights_loading_try = 0
 
 
@@ -67,8 +67,11 @@ def main():
                     state = new_state
             
             else:
-                action = agent.act(state)
+                state = agent.preprocess_state(state)
+                action = agent.select_action(state)
                 new_state, reward, done, info = env.step(action)
+
+                state = new_state
 
     
 if __name__ == '__main__':
