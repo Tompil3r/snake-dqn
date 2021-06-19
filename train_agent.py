@@ -13,10 +13,11 @@ nb_actions = env.action_space.nb_actions
 learning_rate = .0001
 training_steps = 4_000_000
 
-model = models.build_conv_model(state_shape, nb_actions, learning_rate)
-target_model = models.build_conv_model(state_shape, nb_actions, learning_rate)
+# model = models.build_conv_model(state_shape, nb_actions, learning_rate)
+# target_model = models.build_conv_model(state_shape, nb_actions, learning_rate)
 
-agent = DQNAgent(state_shape, nb_actions, model=model, target_model=target_model, eps_decay_steps=training_steps)
+# agent = DQNAgent(state_shape, nb_actions, model=model, target_model=target_model, eps_decay_steps=training_steps)
+agent = DQNAgent(state_shape, nb_actions, eps=.1)
 
 agent.create_experiences(env, 1000)
 
