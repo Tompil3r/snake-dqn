@@ -15,11 +15,12 @@ class SnakeGUI():
 
         self.square_len = 40
 
-        self.background_color = (74, 117, 44)
-        self.board_colors = [(116, 217, 72), (142, 204, 58)]
-        self.snake_head_color = (63, 72, 204)
-        self.snake_body_color = (0, 162, 232)
-        self.apple_color = (237, 28, 35)
+        self.background_color = (50, 50, 50)
+        self.board_colors = [(18, 18, 18), (12, 12, 12)]
+        self.snake_head_color = (255, 255, 255)
+        self.snake_body_color = (0, 252, 0)
+        self.snake_border_color = (0, 0, 0)
+        self.apple_color = (255, 0, 0)
         self.scores_color = (255, 255, 255)
 
         self.right_key = pygame.K_RIGHT
@@ -45,7 +46,7 @@ class SnakeGUI():
     def render(self, mode, user_control):
         if self.include_timer and self.timer is not None:
             time_diff = time.perf_counter() - self.timer
-        
+
             if time_diff < self.update_delay_sec:
                 pygame.time.delay(int(self.update_delay_sec*1000 - time_diff*1000))
         
@@ -127,6 +128,7 @@ class SnakeGUI():
         for point in snake:
             x_draw, y_draw = point.column*self.square_len, point.row*self.square_len
             pygame.draw.rect(self.window, color, [int(x_draw), int(y_draw), self.square_len, self.square_len])
+            pygame.draw.rect(self.window, self.snake_border_color, [int(x_draw), int(y_draw), self.square_len, self.square_len], width=1)
             
             color = self.snake_body_color
     

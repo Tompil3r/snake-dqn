@@ -27,8 +27,7 @@ def main():
             
             if weights_loading_try > 1:
                 print('Unable to load model weights')
-                print('---Quitting---')
-                quit(1)
+                break
 
 
     while True:
