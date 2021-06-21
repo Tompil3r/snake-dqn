@@ -152,7 +152,7 @@ class SnakeEnv():
 
     
     def get_state(self):
-        state = np.full(shape=self.observation_space.shape, fill_value=0, dtype=self.observation_space.dtype)
+        state = np.zeros(shape=self.observation_space.shape, dtype=self.observation_space.dtype)
 
         if self.snake is not None:
             for idx,point in enumerate(self.snake):
