@@ -217,9 +217,8 @@ class SnakeEnv():
 
 
     def is_board_full(self):
-        assert self.state is not None, 'self.is_board_full (SnakeEnv): state must no be None'
-        return np.count_nonzero((self.state==self.empty_value) | (self.state==self.apple_value)) == 0
-    
+        return len(self.snake) == self.height * self.width
+
 
     def update_dir(self, action):
         try:
@@ -249,7 +248,7 @@ class SnakeEnv():
             last_point = self.snake[idx]
         
         return snake, last_point
-    
+
 
     def is_eating_apple(self):
         return self.snake[self.head_index] == self.apple
@@ -286,8 +285,6 @@ class SnakeEnv():
             self.apple = None
             self.spawn_tail()
 
-            self.state = self.get_state()
-
             if self.is_board_full():
                 done = True
                 info[f'Event-{event_idx}'] = 'Game Won'
@@ -297,8 +294,6 @@ class SnakeEnv():
                 self.randomize_apple()
 
         else:
-            self.state = self.get_state()
-
             if self.is_game_over():
                 done = True
                 info[f'Event-{event_idx}'] = 'Game Lost'
@@ -320,6 +315,7 @@ class SnakeEnv():
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
+        self.state = self.get_state()
         return np.copy(self.state), reward, done, info
 
 
