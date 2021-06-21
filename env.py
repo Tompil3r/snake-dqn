@@ -42,6 +42,7 @@ class SnakeEnv():
         self.dir = None
         self.snake_starting_len = 3
         self.head_starting_point = Point(self.height//2, self.width//2)
+        self.apple_starting_point = Point(14, 2)
         
         # functional attributes
         self.max_spawning_attempts = 100
@@ -207,8 +208,9 @@ class SnakeEnv():
         self.last_tail = None
 
         self.dir = self.get_dir(self.action_right)
+        self.apple = self.apple_starting_point
+        # self.randomize_apple()
         self.init_snake()
-        self.randomize_apple()
         self.state = self.get_state()
 
         return np.copy(self.state)
