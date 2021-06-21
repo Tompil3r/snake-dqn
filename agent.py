@@ -4,7 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from collections import namedtuple, deque
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.layers import Flatten, Dense, Conv2D, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 import random
 import numpy as np
@@ -41,13 +41,15 @@ class DQNAgent():
 
     def build_default_model(self, name='model'):
         model = Sequential(layers=[
-            Flatten(input_shape=self.state_shape),
-            Dense(32, activation='relu'),
-            Dense(64, activation='relu'),
-            Dense(128, activation='relu'),
-            Dense(256, activation='relu'),
-            Dense(512, activation='relu'),
-            Dense(self.nb_actions, activation='linear'),
+            Conv2D(32, (3, 3), activation='relu', input_shape=self.state_shape),
+            Conv2D(64, (3, 3), activation='relu'),
+            BatchNormalization(),
+            Conv2D(128, (3, 3), activation='relu'),
+            Conv2D(256, (3, 3), activation='relu'),
+            BatchNormalization(),
+            Conv2D(512, (3, 3), activation='relu'),
+            Flatten(),
+            Dense(self.nb_actions, activation='linear')
         ], name=name)
 
         model.compile(optimizer=Adam(learning_rate=self.learning_rate), loss='mean_squared_error')
