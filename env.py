@@ -42,7 +42,6 @@ class SnakeEnv():
         self.dir = None
         self.snake_starting_len = 3
         self.head_starting_point = Point(self.height//2, self.width//2)
-        self.apple_starting_point = Point(14, 2)
         
         # functional attributes
         self.max_spawning_attempts = 100
@@ -57,12 +56,16 @@ class SnakeEnv():
         self.action_map = {self.action_right:Point(0, 1), self.action_left:Point(0, -1), self.action_up:Point(-1, 0),
         self.action_down:Point(1, 0)}
 
+        # right, left, up, down
+        self.actions = [Point(0, 1), Point(0, -1), Point(-1, 0), Point(1, 0)]
+
         # state attributes
         self.state = None
         self.empty_value = 0
         self.body_value = 1
         self.head_value = 2
         self.apple_value = 3
+        self.out_of_bounds_value = -1
 
         # score attributes
         self.best_score = 0
@@ -70,7 +73,7 @@ class SnakeEnv():
 
         # other properties
         self.action_space = ActionSpace(4)
-        self.observation_space = ObservationSpace(shape=(self.height, self.width), dtype=float)
+        self.observation_space = ObservationSpace(shape=(4,), dtype='int8')
 
         # game codes
         self.normal_move_code = 0
@@ -152,8 +155,8 @@ class SnakeEnv():
             self.apple = Point(np.random.randint(0, self.height), np.random.randint(0, self.width))
 
     
-    def get_state(self):
-        state = np.full(shape=self.observation_space.shape, fill_value=self.empty_value, dtype=self.observation_space.dtype)
+    def get_board(self):
+        board = np.full(shape=(self.height, self.width), fill_value=self.empty_value, dtype=self.observation_space.dtype)
 
         if self.snake is not None:
             for idx,point in enumerate(self.snake):
@@ -161,14 +164,33 @@ class SnakeEnv():
                     continue
 
                 if idx == self.head_index:
-                    state[point.row, point.column] = self.head_value
+                    board[point.row, point.column] = self.head_value
                 else:
-                    state[point.row, point.column] = self.body_value
+                    board[point.row, point.column] = self.body_value
         
         if self.apple is not None:
-            state[self.apple.row, self.apple.column] = self.apple_value
+            board[self.apple.row, self.apple.column] = self.apple_value
+        
+        return board
+
+    
+    def get_state(self):
+        state = np.full(shape=self.observation_space.shape, fill_value=self.empty_value, dtype=self.observation_space.dtype)
+
+        for idx in range(len(self.actions)):
+            point = self.add_points(self.snake[self.head_index], self.actions[idx])
+
+            if not self.in_bounds(point):
+                state[idx] = self.out_of_bounds_value
+
+            elif point == self.apple:
+                state[idx] = self.apple_value
+            
+            elif self.is_snake_occupying(point, include_head=False):
+                state[idx] = self.body_value
         
         return state
+
 
 
     def init_snake(self):
@@ -208,17 +230,16 @@ class SnakeEnv():
         self.last_tail = None
 
         self.dir = self.get_dir(self.action_right)
-        self.apple = self.apple_starting_point
-        # self.randomize_apple()
         self.init_snake()
+        self.randomize_apple()
         self.state = self.get_state()
 
         return np.copy(self.state)
 
 
     def is_board_full(self):
-        assert self.state is not None, 'self.is_board_full (SnakeEnv): state must no be None'
-        return np.count_nonzero((self.state==self.empty_value) | (self.state==self.apple_value)) == 0
+        board = self.get_board()
+        return np.count_nonzero((board==self.empty_value) | (board==self.apple_value)) == 0
     
 
     def update_dir(self, action):
@@ -286,8 +307,6 @@ class SnakeEnv():
             self.apple = None
             self.spawn_tail()
 
-            self.state = self.get_state()
-
             if self.is_board_full():
                 done = True
                 info[f'Event-{event_idx}'] = 'Game Won'
@@ -297,8 +316,6 @@ class SnakeEnv():
                 self.randomize_apple()
 
         else:
-            self.state = self.get_state()
-
             if self.is_game_over():
                 done = True
                 info[f'Event-{event_idx}'] = 'Game Lost'
@@ -316,10 +333,12 @@ class SnakeEnv():
 
                 if self.no_progress_step_nb == self.termination_step:
                     done = True
-                    reward += self.get_reward(self.losing_game_code)
+                    reward += self.get_reward(self.normal_move_code)
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
+
+        self.state = self.get_state()
         return np.copy(self.state), reward, done, info
 
 

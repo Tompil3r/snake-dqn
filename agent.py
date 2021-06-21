@@ -45,8 +45,6 @@ class DQNAgent():
             Dense(32, activation='relu'),
             Dense(64, activation='relu'),
             Dense(128, activation='relu'),
-            Dense(256, activation='relu'),
-            Dense(512, activation='relu'),
             Dense(self.nb_actions, activation='linear'),
         ], name=name)
 
