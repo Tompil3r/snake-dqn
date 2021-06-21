@@ -65,7 +65,6 @@ class SnakeEnv():
         self.body_value = 1
         self.head_value = 2
         self.apple_value = 3
-        self.out_of_bounds_value = -1
 
         # score attributes
         self.best_score = 0
@@ -73,7 +72,7 @@ class SnakeEnv():
 
         # other properties
         self.action_space = ActionSpace(4)
-        self.observation_space = ObservationSpace(shape=(4,), dtype='int8')
+        self.observation_space = ObservationSpace(shape=(12,), dtype='int8')
 
         # game codes
         self.normal_move_code = 0
@@ -175,19 +174,19 @@ class SnakeEnv():
 
     
     def get_state(self):
-        state = np.full(shape=self.observation_space.shape, fill_value=self.empty_value, dtype=self.observation_space.dtype)
+        state = np.zeros(shape=self.observation_space.shape, dtype=self.observation_space.dtype)
 
         for idx in range(len(self.actions)):
             point = self.add_points(self.snake[self.head_index], self.actions[idx])
 
-            if not self.in_bounds(point):
-                state[idx] = self.out_of_bounds_value
+            if not self.in_bounds(point) or self.is_snake_occupying(point, include_head=False):
+                state[idx] = 1
 
             elif point == self.apple:
-                state[idx] = self.apple_value
-            
-            elif self.is_snake_occupying(point, include_head=False):
-                state[idx] = self.body_value
+                state[idx + self.action_space.nb_actions] = 1
+        
+        state[-4:-2] = self.apple
+        state[-2:] = self.snake[self.head_index]
         
         return state
 
