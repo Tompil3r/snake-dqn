@@ -49,6 +49,7 @@ class DQNAgent():
             BatchNormalization(),
             Conv2D(512, (3, 3), activation='relu'),
             Flatten(),
+            Dense(32, activation='relu'),
             Dense(self.nb_actions, activation='linear')
         ], name=name)
 

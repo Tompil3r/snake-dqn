@@ -77,24 +77,34 @@ class SnakeEnv():
         self.winning_game_code = 2
         self.losing_game_code = 3
 
-        # rewards
-        self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
+        # dqn attributes
+        self.snake_apple_distance = None
 
         # gui
         self.gui = SnakeGUI(self, include_timer=True)
 
         # no progress termination
         self.termination_step = 300
-        self.no_progress_step_nb = 0
+        self.no_progress_step_nb = None
+        
 
 
     def get_reward(self, game_code):
-        reward = self.rewards_map[game_code]
+        if game_code == self.normal_move_code:
+            if self.get_snake_apple_manhattan_distance() < self.snake_apple_distance:
+                return 1
+            return -1
+        elif game_code == self.eating_apple_code:
+            return 3
+        elif game_code == self.winning_game_code:
+            return 10
+        elif game_code == self.losing_game_code:
+            return -10
 
-        if callable(reward):
-            return reward(self)
 
-        return reward
+
+    def get_snake_apple_manhattan_distance(self):
+        return self.sum_point(self.abs_point(self.sub_points(self.apple, self.snake[self.head_index])))
 
     
     def get_dir(self, action):
@@ -209,7 +219,9 @@ class SnakeEnv():
         self.dir = self.get_dir(self.action_right)
         self.init_snake()
         self.randomize_apple()
+        self.snake_apple_distance = self.get_snake_apple_manhattan_distance()
         self.state = self.get_state()
+        
 
         return np.copy(self.state)
 
@@ -313,6 +325,8 @@ class SnakeEnv():
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
+
+        self.snake_apple_distance = self.get_snake_apple_manhattan_distance()
         self.state = self.get_state()
         return np.copy(self.state), reward, done, info
 
