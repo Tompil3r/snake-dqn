@@ -97,13 +97,11 @@ class SnakeEnv():
         self.termination_step = 300
         self.no_progress_step_nb = 0
 
-        self.snake_apple_distance = 0
+        self.snake_apple_distance = None
 
 
     def get_normal_move_reward(self):
-        curr_snake_apple_distance = self.get_snake_apple_distance()
-
-        if curr_snake_apple_distance < self.snake_apple_distance:
+        if self.get_snake_apple_distance() < self.snake_apple_distance:
             return 1
         return -1
 
@@ -250,6 +248,7 @@ class SnakeEnv():
         self.dir = self.get_dir(self.action_right)
         self.init_snake()
         self.randomize_apple()
+        self.snake_apple_distance = self.get_snake_apple_distance()
         self.state = self.get_state()
 
         return np.copy(self.state)
