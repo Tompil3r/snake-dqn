@@ -207,9 +207,7 @@ class SnakeEnv():
         state[-4:-2] = self.snake[self.head_index]
         state[-2:] = self.apple
 
-        normalizing_nb = 30
-
-        return state//normalizing_nb
+        return state
 
 
 
