@@ -187,7 +187,8 @@ class DQNAgent():
         return np.reshape(state, self.state_batch_shape)
     
 
-    def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, verbose=1, visualize=False):
+    def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, save_weights_steps=100_000,
+    weights_save_path='model_weights.h5', verbose=1, visualize=False):
         start_time = time.perf_counter()
 
         episodes = []
@@ -240,6 +241,10 @@ class DQNAgent():
                 done = False
 
                 state = env.reset()
+            
+            if save_weights_steps is not None and step % save_weights_steps == 0:
+                self.save_weights(weights_save_path) 
+
         
         if verbose == 1:
             self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, start_time=start_time,

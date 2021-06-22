@@ -309,7 +309,7 @@ class SnakeEnv():
 
                 if self.no_progress_step_nb == self.termination_step:
                     done = True
-                    reward += self.get_reward(self.normal_move_code)
+                    reward += self.get_reward(self.losing_game_code)
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
