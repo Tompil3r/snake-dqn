@@ -84,7 +84,7 @@ class SnakeEnv():
         # self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
 
         self.rewards_map = {
-            self.normal_move_code: lambda env : 1/(env.sum_point(env.abs_point(env.sub_points(env.snake[env.head_index], env.apple))) + 1),
+            self.normal_move_code: lambda env : env.get_normal_move_reward(),
             self.eating_apple_code:3,
             self.winning_game_code:10,
             self.losing_game_code:-10
@@ -96,6 +96,20 @@ class SnakeEnv():
         # no progress termination
         self.termination_step = 300
         self.no_progress_step_nb = 0
+
+        self.snake_apple_distance = 0
+
+
+    def get_normal_move_reward(self):
+        curr_snake_apple_distance = self.get_snake_apple_distance()
+
+        if curr_snake_apple_distance < self.snake_apple_distance:
+            return 1
+        return -1
+
+
+    def get_snake_apple_distance(self):
+        return self.sum_point(self.abs_point(self.sub_points(self.apple, self.snake[self.head_index])))
 
 
     def get_reward(self, game_code):
@@ -190,15 +204,12 @@ class SnakeEnv():
             if not self.in_bounds(point) or self.is_snake_occupying(point, include_head=False):
                 state[idx] = 1
         
-        apple_delta = self.sub_points(self.apple, self.snake[self.head_index])
+        state[-4:-2] = self.snake[self.head_index]
+        state[-2:] = self.apple
 
-        delta_row_positive = apple_delta.row > 0
-        delta_column_positive = apple_delta.column > 0
- 
-        state[idx+1:] = [delta_column_positive, not delta_column_positive, not delta_row_positive, delta_row_positive]
-        
-        
-        return state
+        normalizing_nb = 30
+
+        return state//normalizing_nb
 
 
 
@@ -347,6 +358,7 @@ class SnakeEnv():
                     event_idx += 1
         
 
+        self.snake_apple_distance = self.get_snake_apple_distance()
         self.state = self.get_state()
         return np.copy(self.state), reward, done, info
 
