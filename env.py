@@ -72,7 +72,7 @@ class SnakeEnv():
 
         # other properties
         self.action_space = ActionSpace(4)
-        self.observation_space = ObservationSpace(shape=(12,), dtype='int8')
+        self.observation_space = ObservationSpace(shape=(8,), dtype='int8')
 
         # game codes
         self.normal_move_code = 0
@@ -81,7 +81,14 @@ class SnakeEnv():
         self.losing_game_code = 3
 
         # rewards
-        self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
+        # self.rewards_map = {self.normal_move_code:0, self.eating_apple_code:1, self.winning_game_code:10, self.losing_game_code:-1}
+
+        self.rewards_map = {
+            self.normal_move_code: lambda env : 1/(env.sum_point(env.abs_point(env.sub_points(env.snake[env.head_index], env.apple))) + 1),
+            self.eating_apple_code:3,
+            self.winning_game_code:10,
+            self.losing_game_code:-10
+        }
 
         # gui
         self.gui = SnakeGUI(self, include_timer=True)
@@ -176,17 +183,20 @@ class SnakeEnv():
     def get_state(self):
         state = np.zeros(shape=self.observation_space.shape, dtype=self.observation_space.dtype)
 
+        # actions: right, left, up, down
         for idx in range(len(self.actions)):
             point = self.add_points(self.snake[self.head_index], self.actions[idx])
 
             if not self.in_bounds(point) or self.is_snake_occupying(point, include_head=False):
                 state[idx] = 1
-
-            elif point == self.apple:
-                state[idx + self.action_space.nb_actions] = 1
         
-        state[-4:-2] = self.apple
-        state[-2:] = self.snake[self.head_index]
+        apple_delta = self.sub_points(self.apple, self.snake[self.head_index])
+
+        delta_row_positive = apple_delta.row > 0
+        delta_column_positive = apple_delta.column > 0
+ 
+        state[idx+1:] = [delta_column_positive, not delta_column_positive, not delta_row_positive, delta_row_positive]
+        
         
         return state
 
@@ -332,7 +342,7 @@ class SnakeEnv():
 
                 if self.no_progress_step_nb == self.termination_step:
                     done = True
-                    reward += self.get_reward(self.normal_move_code)
+                    reward += self.get_reward(self.losing_game_code)
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
