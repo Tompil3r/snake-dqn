@@ -10,7 +10,7 @@ weights_path = 'model_weights.h5'
 
 state_shape = env.observation_space.shape
 nb_actions = env.action_space.nb_actions
-training_steps = 400_000
+training_steps = 20_000_000
 decay_steps = int(training_steps * 0.9)
 
 agent = DQNAgent(state_shape, nb_actions, eps_decay_steps=decay_steps)

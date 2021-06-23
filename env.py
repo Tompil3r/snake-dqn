@@ -56,8 +56,6 @@ class SnakeEnv():
         self.action_map = {self.action_right:Point(0, 1), self.action_left:Point(0, -1), self.action_up:Point(-1, 0),
         self.action_down:Point(1, 0)}
 
-        # right, left, up, down
-        self.actions = [Point(0, 1), Point(0, -1), Point(-1, 0), Point(1, 0)]
 
         # state attributes
         self.state = None
@@ -72,7 +70,7 @@ class SnakeEnv():
 
         # other properties
         self.action_space = ActionSpace(4)
-        self.observation_space = ObservationSpace(shape=(8,), dtype='int8')
+        self.observation_space = ObservationSpace(shape=(12,), dtype='int8')
 
         # game codes
         self.normal_move_code = 0
@@ -85,9 +83,9 @@ class SnakeEnv():
 
         self.rewards_map = {
             self.normal_move_code: lambda env : env.get_normal_move_reward(),
-            self.eating_apple_code:3,
-            self.winning_game_code:10,
-            self.losing_game_code:-10
+            self.eating_apple_code:10,
+            self.winning_game_code:100,
+            self.losing_game_code:-100
         }
 
         # gui
@@ -194,16 +192,23 @@ class SnakeEnv():
     
     def get_state(self):
         state = np.zeros(shape=self.observation_space.shape, dtype=self.observation_space.dtype)
+        apple_delta = self.sub_points(self.apple, self.snake[self.head_index])
 
-        # actions: right, left, up, down
-        for idx in range(len(self.actions)):
-            point = self.add_points(self.snake[self.head_index], self.actions[idx])
+
+        obstacles = [0] * 4
+        snake_dir = [0] * 4
+        apple_dir = [int(apple_delta.column > 0), int(apple_delta.column < 0), int(apple_delta.row < 0), int(apple_delta.row > 0)]
+
+        # dirs: right, left, up, down
+        for dir_nb, dir in self.action_map.items():
+            snake_dir[dir_nb] = int(dir == self.dir)
+
+            point = self.add_points(self.snake[self.head_index], dir)
 
             if not self.in_bounds(point) or self.is_snake_occupying(point, include_head=False):
-                state[idx] = 1
-        
-        state[-4:-2] = self.snake[self.head_index]
-        state[-2:] = self.apple
+                obstacles[dir_nb] = 1
+
+        state[:] = obstacles + snake_dir + apple_dir
 
         return state
 
@@ -350,7 +355,7 @@ class SnakeEnv():
 
                 if self.no_progress_step_nb == self.termination_step:
                     done = True
-                    reward += self.get_reward(self.losing_game_code)
+                    # reward += 0
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
