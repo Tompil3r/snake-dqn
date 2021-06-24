@@ -88,19 +88,17 @@ class SnakeEnv():
         self.no_progress_step_nb = None
         
 
-
     def get_reward(self, game_code):
         if game_code == self.normal_move_code:
             if self.get_snake_apple_manhattan_distance() < self.snake_apple_distance:
                 return 1
             return -1
         elif game_code == self.eating_apple_code:
-            return 3
-        elif game_code == self.winning_game_code:
             return 10
+        elif game_code == self.winning_game_code:
+            return 100
         elif game_code == self.losing_game_code:
-            return -10
-
+            return -100
 
 
     def get_snake_apple_manhattan_distance(self):
@@ -321,7 +319,7 @@ class SnakeEnv():
 
                 if self.no_progress_step_nb == self.termination_step:
                     done = True
-                    reward += self.get_reward(self.losing_game_code)
+                    # reward += 0
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
         
