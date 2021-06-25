@@ -41,15 +41,10 @@ class DQNAgent():
 
     def build_default_model(self, name='model'):
         model = Sequential(layers=[
-            Conv2D(32, (3, 3), activation='relu', input_shape=self.state_shape),
-            Conv2D(64, (3, 3), activation='relu'),
-            BatchNormalization(),
-            Conv2D(128, (3, 3), activation='relu'),
-            Conv2D(256, (3, 3), activation='relu'),
-            BatchNormalization(),
-            Conv2D(512, (3, 3), activation='relu'),
-            Flatten(),
+            Flatten(input_shape=self.state_shape),
             Dense(32, activation='relu'),
+            Dense(64, activation='relu'),
+            Dense(128, activation='relu'),
             Dense(self.nb_actions, activation='linear')
         ], name=name)
 
