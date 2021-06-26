@@ -322,6 +322,9 @@ class SnakeEnv():
                     # reward += 0
                     info[f'Event-{event_idx}'] = 'No Progress Termination'
                     event_idx += 1
+
+                    if self.curr_score > self.best_score:
+                        self.best_score = self.curr_score
         
 
         self.snake_apple_distance = self.get_snake_apple_manhattan_distance()
