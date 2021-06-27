@@ -2,6 +2,7 @@ from env import SnakeEnv
 from agent import DQNAgent
 import numpy as np
 import os
+import models
 
 
 env = SnakeEnv()
@@ -10,9 +11,11 @@ weights_path = 'model_weights.h5'
 
 state_shape = env.observation_space.shape
 nb_actions = env.action_space.nb_actions
-training_steps = 4_000_000
+training_steps = 20_000_000
 
-agent = DQNAgent(state_shape, nb_actions, eps_decay_steps=training_steps * 0.9)
+model = models.build_model_1(state_shape, nb_actions)
+target_model = models.build_model_1(state_shape, nb_actions)
+agent = DQNAgent(state_shape, nb_actions, model=model, target_model=target_model, eps_decay_steps=int(training_steps * 0.9))
 
 agent.create_experiences(env, 1000)
 
