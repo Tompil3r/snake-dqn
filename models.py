@@ -45,7 +45,7 @@ def build_model_3(state_shape, nb_actions):
     return model
 
 
-def build_model_5(state_shape, nb_actions):
+def build_model_4(state_shape, nb_actions):
     model = Sequential(layers=[
         Conv2D(32, (8, 8), activation='relu', input_shape=state_shape),
         Conv2D(32, (5, 5), activation='relu'),
