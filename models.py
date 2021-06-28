@@ -45,17 +45,17 @@ def build_model_3(state_shape, nb_actions):
     return model
 
 
-def build_model_4(state_shape, nb_actions):
+def build_model_5(state_shape, nb_actions):
     model = Sequential(layers=[
-        Conv2D(32, (8, 8), input_shape=state_shape),
-        Conv2D(32, (5, 5)),
-        Conv2D(64, (3, 3)),
+        Conv2D(32, (8, 8), activation='relu', input_shape=state_shape),
+        Conv2D(32, (5, 5), activation='relu'),
+        Conv2D(64, (3, 3), activation='relu'),
         Flatten(),
         Dense(128, activation='relu'),
         Dense(nb_actions, activation='linear')
     ])
 
-    model.compile(optimizer=Adam(learning_rate=.0001), loss='mean_squared_error')
+    model.compile(optimizer=Adam(learning_rate=.001), loss='mean_squared_error')
     return model
 
 
