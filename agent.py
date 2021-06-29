@@ -107,33 +107,36 @@ class DQNAgent():
 
     def logger(self, nb_episodes=None, nb_steps=None, episode_nb=None, step_nb=None, episode_reward=None, start_time=None,
     final_log=False, bar_length=50, clear_line=True):
+        try:
+            clear_log = '\033[2K' if clear_line else ''
+            progress_log = ''
+            reward_log = ''
+            time_log = ''
+            param_log = f' - eps {self.eps:.3f}'
+            log_end = '\n' if final_log else '\r'
 
-        clear_log = '\033[2K' if clear_line else ''
-        progress_log = ''
-        reward_log = ''
-        time_log = ''
-        param_log = f' - eps {self.eps:.3f}'
-        log_end = '\n' if final_log else '\r'
-
-        if nb_episodes is not None:
-            progress = int((episode_nb/nb_episodes)*bar_length)
-            progress_log = f' - episode ({episode_nb}/{nb_episodes}) - {episode_nb*100/nb_episodes:.2f}%'
-        else:
-            progress = int((step_nb/nb_steps)*bar_length)
-
-            if episode_nb is not None:
-                progress_log = f' - episode {episode_nb} - step ({step_nb}/{nb_steps}) - {step_nb*100/nb_steps:.2f}%'
+            if nb_episodes is not None:
+                progress = int((episode_nb/nb_episodes)*bar_length)
+                progress_log = f' - episode ({episode_nb}/{nb_episodes}) - {episode_nb*100/nb_episodes:.2f}%'
             else:
-                progress_log = f' - step ({step_nb}/{nb_steps})'
+                progress = int((step_nb/nb_steps)*bar_length)
 
-        if episode_reward is not None:
-            reward_log = f' - episode reward {episode_reward:.2f}'
+                if episode_nb is not None:
+                    progress_log = f' - episode {episode_nb} - step ({step_nb}/{nb_steps}) - {step_nb*100/nb_steps:.2f}%'
+                else:
+                    progress_log = f' - step ({step_nb}/{nb_steps})'
+
+            if episode_reward is not None:
+                reward_log = f' - episode reward {episode_reward:.2f}'
+            
+            if start_time is not None:
+                time_log = f' - time {time.perf_counter() - start_time:.2f}s'
+
+            log = clear_log + f"[{'='*(progress-1)}{'>'*min(1, progress)}{'.'*(bar_length-progress)}]" + progress_log + reward_log + param_log + time_log + log_end
+            print(log, end='')
         
-        if start_time is not None:
-            time_log = f' - time {time.perf_counter() - start_time:.2f}s'
-
-        log = clear_log + f"[{'='*(progress-1)}{'>'*min(1, progress)}{'.'*(bar_length-progress)}]" + progress_log + reward_log + param_log + time_log + log_end
-        print(log, end='')
+        except Exception:
+            print('Logger Error')
 
     
     def select_action(self, state, training=False):
