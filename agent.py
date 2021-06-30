@@ -105,14 +105,15 @@ class DQNAgent():
         return states, actions, rewards, next_states, terminals
 
 
-    def logger(self, nb_episodes=None, nb_steps=None, episode_nb=None, step_nb=None, episode_reward=None, start_time=None,
-    final_log=False, bar_length=50, clear_line=True):
+    def logger(self, nb_episodes=None, nb_steps=None, episode_nb=None, step_nb=None, episode_reward=None, score=None, start_time=None,
+    final_log=False, bar_length=50, clear_line=True, training=False):
         try:
             clear_log = '\033[2K' if clear_line else ''
             progress_log = ''
             reward_log = ''
+            score_log = f' - score {score}' if score is not None else ''
             time_log = ''
-            param_log = f' - eps {self.eps:.3f}'
+            param_log = f' - eps {self.eps:.3f}' if training else ''
             log_end = '\n' if final_log else '\r'
 
             if nb_episodes is not None:
@@ -132,7 +133,8 @@ class DQNAgent():
             if start_time is not None:
                 time_log = f' - time {time.perf_counter() - start_time:.2f}s'
 
-            log = clear_log + f"[{'='*(progress-1)}{'>'*min(1, progress)}{'.'*(bar_length-progress)}]" + progress_log + reward_log + param_log + time_log + log_end
+            log = clear_log + f"[{'='*(progress-1)}{'>'*min(1, progress)}{'.'*(bar_length-progress)}]" + progress_log + reward_log + \
+            score_log + param_log + time_log + log_end
             print(log, end='')
         
         except Exception:
@@ -230,8 +232,8 @@ class DQNAgent():
                 steps.append(episode_step)
 
                 if verbose == 1:
-                    self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, start_time=start_time,
-                    final_log=False)
+                    self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
+                    start_time=start_time, final_log=False, training=True)
 
                 episode_nb += 1
                 episode_step = 0
@@ -245,8 +247,8 @@ class DQNAgent():
 
         
         if verbose == 1:
-            self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, start_time=start_time,
-            final_log=True)
+            self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
+            start_time=start_time, final_log=True, training=True)
 
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
 
@@ -286,11 +288,11 @@ class DQNAgent():
             steps.append(episode_step)
 
             if verbose == 1:
-                self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, start_time=start_time,
-                    final_log=False)
+                self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, score=env.curr_score,
+                start_time=start_time, final_log=False)
         
         if verbose == 1:
-            self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, start_time=start_time,
-            final_log=True)
+            self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, score=env.curr_score,
+            start_time=start_time, final_log=True)
         
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
