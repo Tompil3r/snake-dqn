@@ -91,3 +91,34 @@ def build_model_6(state_shape, nb_actions):
 
     model.compile(optimizer=Adam(learning_rate=.0001), loss='mean_squared_error')
     return model
+
+
+def build_model_7(state_shape, nb_actions):
+    model = Sequential(layers=[
+        Conv2D(32, (3, 3), activation='relu', input_shape=state_shape),
+        Conv2D(32, (3, 3), activation='relu'),
+        Conv2D(32, (3, 3), activation='relu'),
+        Conv2D(32, (3, 3), activation='relu'),
+        Conv2D(32, (3, 3), activation='relu'),
+        Conv2D(32, (3, 3), activation='relu'),
+        Flatten(),
+        Dense(32, activation='relu'),
+        Dense(nb_actions, activation='linear')
+    ])
+
+    model.compile(optimizer=Adam(learning_rate=.0001), loss='mean_squared_error')
+    return model
+
+
+def build_model_8(state_shape, nb_actions):
+    model = Sequential(layers=[
+        Conv2D(32, (8, 8), activation='relu', input_shape=state_shape),
+        Conv2D(32, (5, 5), activation='relu'),
+        Conv2D(32, (3, 3), activation='relu'),
+        Flatten(),
+        Dense(32, activation='relu'),
+        Dense(nb_actions, activation='linear')
+    ])
+
+    model.compile(optimizer=Adam(learning_rate=.0001), loss='mean_squared_error')
+    return model
