@@ -15,15 +15,14 @@ training_steps = 20_000_000
 
 model = models.build_model_8(state_shape, nb_actions)
 target_model = models.build_model_8(state_shape, nb_actions)
-model.summary()
-quit(0)
-agent = DQNAgent(state_shape, nb_actions, model=model, target_model=target_model, eps_decay_steps=int(training_steps * 0.9))
+
+agent = DQNAgent(state_shape, nb_actions, model=model, target_model=target_model, eps_decay_steps=training_steps)
 
 agent.create_experiences(env, 1000)
 
 if os.path.exists(weights_path):
     agent.load_weights(weights_path)
 
-history = agent.fit(env, training_steps, batch_size=64)
+history = agent.fit(env, training_steps, batch_size=256)
 
 agent.save_weights(weights_path)
