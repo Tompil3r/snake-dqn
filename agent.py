@@ -187,19 +187,22 @@ class DQNAgent():
         return np.reshape(state, self.state_batch_shape)
     
 
-    def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, save_weights_steps=100_000,
-    weights_save_path='model_weights.h5', verbose=1, visualize=False):
+    def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, validation_steps=100_000,
+    validation_episodes=5, save_weights_steps=100_000, weights_save_path='model_weights.h5', verbose=1, visualize=False):
         start_time = time.perf_counter()
 
         episodes = []
         rewards = []
         steps = []
         scores = []
+        validation_episodes_list = []
+        validation_scores_list = []
 
         episode_nb = 0
         episode_step = 0
         episode_reward = 0
         done = False
+        validate = False
 
         state = env.reset()
 
@@ -219,7 +222,10 @@ class DQNAgent():
 
             if step % target_weights_update == 0:
                 self.update_target_weights()
-            
+
+            if step % validation_steps == 0:
+                validate = True
+
             if nb_max_episode_steps == episode_step:
                 done = True
 
@@ -227,6 +233,13 @@ class DQNAgent():
             
             if done:
                 self.replay_experience(batch_size, episode_step)
+
+                if validate:
+                    validation_history = self.test(env, validation_episodes, nb_max_episode_steps=nb_max_episode_steps,
+                    verbose=0, visualize=False)
+                    validation_episodes_list.append(episode_nb)
+                    validation_scores_list.append(np.mean(validation_history['scores']))
+                    validate = False
 
                 episodes.append(episode_nb)
                 rewards.append(episode_reward)
@@ -252,7 +265,8 @@ class DQNAgent():
             self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
             start_time=start_time, final_log=True, training=True)
 
-        return {'episodes':episodes, 'rewards':rewards, 'steps':steps, 'scores':scores}
+        return {'episodes':episodes, 'rewards':rewards, 'steps':steps, 'scores':scores, 'validation':{'episodes':validation_episodes_list,
+        'scores':validation_scores_list}}
 
 
     def test(self, env, nb_episodes, nb_max_episode_steps=-1, verbose=1, visualize=True):
@@ -261,6 +275,7 @@ class DQNAgent():
         episodes = []
         rewards = []
         steps = []
+        scores = []
 
         for episode in range(nb_episodes):
             state = env.reset()
@@ -288,6 +303,7 @@ class DQNAgent():
             episodes.append(episode)
             rewards.append(episode_reward)
             steps.append(episode_step)
+            scores.append(env.curr_score)
 
             if verbose == 1:
                 self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, score=env.curr_score,
@@ -297,4 +313,4 @@ class DQNAgent():
             self.logger(nb_episodes=nb_episodes, episode_nb=episode+1, episode_reward=episode_reward, score=env.curr_score,
             start_time=start_time, final_log=True)
         
-        return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
+        return {'episodes':episodes, 'rewards':rewards, 'steps':steps, 'scores':scores}
