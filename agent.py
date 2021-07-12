@@ -194,6 +194,7 @@ class DQNAgent():
         episodes = []
         rewards = []
         steps = []
+        scores = []
 
         episode_nb = 0
         episode_step = 0
@@ -230,6 +231,7 @@ class DQNAgent():
                 episodes.append(episode_nb)
                 rewards.append(episode_reward)
                 steps.append(episode_step)
+                scores.append(env.curr_score) # added scores
 
                 if verbose == 1:
                     self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
@@ -250,7 +252,7 @@ class DQNAgent():
             self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
             start_time=start_time, final_log=True, training=True)
 
-        return {'episodes':episodes, 'rewards':rewards, 'steps':steps}
+        return {'episodes':episodes, 'rewards':rewards, 'steps':steps, 'scores':scores}
 
 
     def test(self, env, nb_episodes, nb_max_episode_steps=-1, verbose=1, visualize=True):
