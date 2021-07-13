@@ -13,7 +13,7 @@ log_path = 'training_log.pkl'
 
 state_shape = env.observation_space.shape
 nb_actions = env.action_space.nb_actions
-training_steps = 5_000_000
+training_steps = 18_000_000
 
 model = models.build_model_8(state_shape, nb_actions)
 target_model = models.build_model_8(state_shape, nb_actions)

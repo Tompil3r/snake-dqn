@@ -9,6 +9,7 @@ import random
 import numpy as np
 import time
 import gc
+from pympler import muppy, summary
 
 
 Memory = namedtuple('Memory', ['states', 'actions', 'rewards', 'next_states', 'terminals'])
@@ -189,8 +190,11 @@ class DQNAgent():
     
 
     def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, validation_steps=100_000,
-    validation_episodes=5, save_weights_steps=100_000, weights_save_path='model_weights.h5', verbose=1, visualize=False, gc_steps=50_000):
+    validation_episodes=5, save_weights_steps=100_000, weights_save_path='model_weights.h5', verbose=1, visualize=False, gc_steps=10_000):
         start_time = time.perf_counter()
+
+        mem_log = open('mem_log', 'a+')
+        mem_log_str = ""
 
         episodes = []
         rewards = []
@@ -230,6 +234,14 @@ class DQNAgent():
             if step % gc_steps == 0:
                 gc.collect()
 
+            if step % 100_000 == 0:
+                all_objs = muppy.get_objects()
+                sum = summary.summarize(all_objs)
+                for row in summary.format_(sum, limit=5):
+                    mem_log_str += row + '\n'
+                mem_log.write(mem_log_str + '\n\n')
+
+
             if nb_max_episode_steps == episode_step:
                 done = True
 
@@ -268,6 +280,8 @@ class DQNAgent():
         if verbose == 1:
             self.logger(nb_steps=nb_steps, episode_nb=episode_nb+1, step_nb=step+1, episode_reward=episode_reward, score=env.curr_score,
             start_time=start_time, final_log=True, training=True)
+
+        mem_log.close()
 
         return {'episodes':episodes, 'rewards':rewards, 'steps':steps, 'scores':scores, 'validation':{'episodes':validation_episodes_list,
         'scores':validation_scores_list}}
