@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import Adam
 import random
 import numpy as np
 import time
+import gc
 
 
 Memory = namedtuple('Memory', ['states', 'actions', 'rewards', 'next_states', 'terminals'])
@@ -188,7 +189,7 @@ class DQNAgent():
     
 
     def fit(self, env, nb_steps, batch_size=32, target_weights_update=10_000, nb_max_episode_steps=-1, validation_steps=100_000,
-    validation_episodes=5, save_weights_steps=100_000, weights_save_path='model_weights.h5', verbose=1, visualize=False):
+    validation_episodes=5, save_weights_steps=100_000, weights_save_path='model_weights.h5', verbose=1, visualize=False, gc_steps=50_000):
         start_time = time.perf_counter()
 
         episodes = []
@@ -226,6 +227,9 @@ class DQNAgent():
             if step % validation_steps == 0:
                 validate = True
 
+            if step % gc_steps == 0:
+                gc.collect()
+
             if nb_max_episode_steps == episode_step:
                 done = True
 
@@ -256,7 +260,7 @@ class DQNAgent():
                 done = False
 
                 state = env.reset()
-            
+
             if save_weights_steps is not None and step % save_weights_steps == 0:
                 self.save_weights(weights_save_path) 
 
